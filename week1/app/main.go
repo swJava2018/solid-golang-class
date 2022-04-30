@@ -1,7 +1,7 @@
 package main
 
 import (
-	"event-data-pipeline/cmd/event_data_pipeline"
+	"event-data-pipeline/cmd"
 	"event-data-pipeline/pkg"
 	"event-data-pipeline/pkg/config"
 	"event-data-pipeline/pkg/logger"
@@ -14,7 +14,7 @@ func main() {
 	PrintLogo()
 	logger.Setup()
 	cfg := config.NewConfig()
-	event_data_pipeline.Run(*cfg)
+	cmd.Run(*cfg)
 }
 
 func PrintLogo() {

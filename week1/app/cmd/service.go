@@ -1,4 +1,4 @@
-package event_data_pipeline
+package cmd
 
 import (
 	"event-data-pipeline/pkg/config"

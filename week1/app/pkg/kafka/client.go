@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"event-data-pipeline/pkg/consumers"
 	"event-data-pipeline/pkg/logger"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -28,7 +29,7 @@ type KafkaConsumerClient struct {
 	kafkaConsumer *kafka.Consumer
 }
 
-func NewKafkaConsumerClient(config jsonObj) *KafkaConsumerClient {
+func NewKafkaConsumerClient(config jsonObj) consumers.Consumer {
 
 	// Read config into KafkaClientConfig struct
 	var kcCfg KafkaClientConfig
@@ -48,7 +49,7 @@ func NewKafkaConsumerClient(config jsonObj) *KafkaConsumerClient {
 	}
 	err = client.Create()
 	if err != nil {
-		logger.Fatalf(err.Error())
+		logger.Errorf(err.Error())
 	}
 
 	return client

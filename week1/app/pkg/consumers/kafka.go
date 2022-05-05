@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"event-data-pipeline/pkg/logger"
+	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
@@ -77,8 +78,33 @@ func (kc *KafkaConsumerClient) Create() error {
 }
 
 func (kc *KafkaConsumerClient) Read(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) error {
+	// create admin client
+	// get partitions
+	// loop through partitions
+	// run go routing per partition
+	/// send event data through input channel
+	var err error
+	for {
 
-	return nil
+		ev := kc.kafkaConsumer.Poll(100)
+		switch e := ev.(type) {
+		case *kafka.Message:
+			raw, _ := json.Marshal(e)
+			logger.Debugf("Message on p[%v]: %v", e.TopicPartition.Partition, string(raw))
+			return nil
+		case kafka.Error:
+			logger.Errorf("Error: %v: %v", e.Code(), e)
+			err = e
+			return err
+		case kafka.PartitionEOF:
+			logger.Debugf("[PartitionEOF][Consumer: %s][Topic: %v][Partition: %v][Offset: %d][Message: %v]", kc.kafkaConsumer.String(), *e.Topic, e.Partition, e.Offset, fmt.Sprintf("\"%s\"", e.Error.Error()))
+		default:
+			if e == nil {
+				continue
+			}
+		}
+	}
+
 }
 
 //delete kafkaClient instance

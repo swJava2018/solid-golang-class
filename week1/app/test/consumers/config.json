@@ -7,7 +7,7 @@
                 "retry_delay": 5,
                 "record_check_frequency": 15,
                 "client_name": "default",
-                "topic": "NMDPTRIAL_kim_seok_nuance_com_20210427T044351526748",
+                "topic": "event",
                 "consumer_options": {
                     "bootstrap.servers": "localhost:9092",
                     "group.id": "01",

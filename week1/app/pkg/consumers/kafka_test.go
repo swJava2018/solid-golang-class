@@ -1,8 +1,10 @@
 package consumers
 
 import (
+	"context"
 	"event-data-pipeline/pkg/cli"
 	"event-data-pipeline/pkg/config"
+	"event-data-pipeline/pkg/logger"
 	"os"
 	"path"
 	"runtime"
@@ -20,7 +22,7 @@ func getCurDir() string {
 	}
 	return dir
 }
-func TestCreateConsumerKafka(t *testing.T) {
+func TestConsumerKafkaCreate(t *testing.T) {
 	configPath := getCurDir() + "/test/consumers/config.json"
 	os.Setenv("EDP_CONFIG", configPath)
 	os.Args = nil
@@ -42,6 +44,34 @@ func TestCreateConsumerKafka(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+
+	}
+
+}
+
+func TestConsumerKafkaRead(t *testing.T) {
+	configPath := getCurDir() + "/test/consumers/config.json"
+	os.Setenv("EDP_ENABLE_DEBUG_LOGGING", "true")
+	os.Setenv("EDP_CONFIG", configPath)
+	os.Args = nil
+	arg.MustParse(&cli.Args)
+	logger.Setup()
+	cfg := config.NewConfig()
+	pipeCfgs := config.NewPipelineConfig(cfg.PipelineCfgsPath)
+	for _, cfg := range pipeCfgs {
+		kafkaConsumer, err := CreateConsumer(cfg.Consumer.Name, cfg.Consumer.Config)
+		if err != nil {
+			t.Error(err)
+		}
+		t.Logf("%T", kafkaConsumer)
+		consumer, ok := kafkaConsumer.(*KafkaConsumerClient)
+		if !ok {
+			t.Error("failed to switch type to *KafkaConsumerClient")
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		consumer.Read(context.TODO(), nil, nil, nil)
 
 	}
 

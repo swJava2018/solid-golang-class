@@ -1,17 +1,19 @@
-package kafka
+package consumers
 
 import (
 	"context"
 	"encoding/json"
-	"event-data-pipeline/pkg/consumers"
 	"event-data-pipeline/pkg/logger"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-type (
-	jsonObj = map[string]interface{}
-)
+// register kafka consumer client to factory
+func init() {
+
+	Register("kafka", NewKafkaConsumerClient)
+
+}
 
 type KafkaClientConfig struct {
 	ClientName      string  `json:"client_name,omitempty"`
@@ -29,7 +31,7 @@ type KafkaConsumerClient struct {
 	kafkaConsumer *kafka.Consumer
 }
 
-func NewKafkaConsumerClient(config jsonObj) consumers.Consumer {
+func NewKafkaConsumerClient(config jsonObj) Consumer {
 
 	// Read config into KafkaClientConfig struct
 	var kcCfg KafkaClientConfig

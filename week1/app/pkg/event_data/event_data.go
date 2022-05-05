@@ -1,17 +1,13 @@
 package pipelines
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"event-data-pipeline/pkg/config"
-	"event-data-pipeline/pkg/consumers"
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/pipelines"
-	"event-data-pipeline/pkg/processors"
 	"event-data-pipeline/pkg/sys"
 	"os"
-	"sync"
 )
 
 type EventDataPipeline struct {
@@ -66,48 +62,48 @@ func (e *EventDataPipeline) RunCollector(cfg config.Config) error {
 
 func (e *EventDataPipeline) runCollector(collectorConfs []*config.PipelineCfg) error {
 
-	var wg sync.WaitGroup
+	// var wg sync.WaitGroup
 	// context with canel for graceful shutdown
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	defer cancelFunc()
+	// ctx, cancelFunc := context.WithCancel(context.Background())
+	// defer cancelFunc()
 
 	// 2. for each collector...
-	for _, conf := range collectorConfs {
-		wg.Add(1)
+	// for _, conf := range collectorConfs {
+	// 	wg.Add(1)
 
-		// Source
-		consumer, err := consumers.CreateConsumer(conf.Consumer.Name, conf.Consumer.Config)
-		if err != nil {
-			logger.Errorf("%v", err)
-			return err
-		}
+	// 	// Source
+	// 	consumer, err := consumers.CreateConsumer(conf.Consumer.Name, conf.Consumer.Config)
+	// 	if err != nil {
+	// 		logger.Errorf("%v", err)
+	// 		return err
+	// 	}
 
-		// Muliple Processors
-		_processors := make([]processors.Processor, len(conf.Processors))
+	// Muliple Processors
+	// _processors := make([]processors.Processor, len(conf.Processors))
 
-		// Multiple Sink
-		_storage := make([]storage.Storage, len(*p.Storage))
-		for i, s := range *p.Storage {
-			logger.Debugf("storage[%d]: %v", i, s.Type)
-			_storage[i], err = storage.CreateStorage(s.Type, s.Config)
-			if err != nil {
-				logger.Errorf("%v", err)
-				return err
-			}
-		}
+	// Multiple Sink
+	// _storage := make([]storage.Storage, len(*p.Storage))
+	// for i, s := range *p.Storage {
+	// 	logger.Debugf("storage[%d]: %v", i, s.Type)
+	// 	_storage[i], err = storage.CreateStorage(s.Type, s.Config)
+	// 	if err != nil {
+	// 		logger.Errorf("%v", err)
+	// 		return err
+	// 	}
+	// }
 
-		// e. create event logger collector
-		// collector := .NewCollector(consumer, _processors)
+	// e. create event logger collector
+	// collector := .NewCollector(consumer, _processors)
 
-		// f. run event logger collector
-		go collector.Start(ctx, &wg)
-	}
-	e.signal.ReceiveShutDown() // blocks until shutdown signal
-	logger.Infof("\n*********************************\nGraceful shutdown signal received\n*********************************")
-	cancelFunc() // Signal cancellation to context.Context
-	wg.Wait()
-	go e.signal.SendDone(true) // send shutdown done signal to receiver
-	logger.Infof("\n*********************************\nGraceful shutdown completed      \n*********************************")
+	// f. run event logger collector
+	// go collector.Start(ctx, &wg)
+	// }
+	// e.signal.ReceiveShutDown() // blocks until shutdown signal
+	// logger.Infof("\n*********************************\nGraceful shutdown signal received\n*********************************")
+	// cancelFunc() // Signal cancellation to context.Context
+	// wg.Wait()
+	// go e.signal.SendDone(true) // send shutdown done signal to receiver
+	// logger.Infof("\n*********************************\nGraceful shutdown completed      \n*********************************")
 	return nil
 }
 

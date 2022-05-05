@@ -22,23 +22,27 @@ func getCurDir() string {
 }
 func TestCreateConsumerKafka(t *testing.T) {
 	configPath := getCurDir() + "/test/consumers/config.json"
-	os.Setenv("ELC_CONFIG", configPath)
+	os.Setenv("EDP_CONFIG", configPath)
 	os.Args = nil
 	arg.MustParse(&cli.Args)
 	cfg := config.NewConfig()
+	pipeCfgs := config.NewPipelineConfig(cfg.PipelineCfgsPath)
+	for _, cfg := range pipeCfgs {
+		kafkaConsumer, err := CreateConsumer(cfg.Consumer.Name, cfg.Consumer.Config)
+		if err != nil {
+			t.Error(err)
+		}
+		t.Logf("%T", kafkaConsumer)
+		consumer, ok := kafkaConsumer.(*KafkaConsumerClient)
+		if !ok {
+			t.Error("failed to switch type to *KafkaConsumerClient")
+		}
 
-	kafkaConsumer, err := CreateConsumer("kafka", nil)
-	if err != nil {
-		t.Error(err)
-	}
-	t.Logf("%T", kafkaConsumer)
-	consumer, ok := kafkaConsumer.(*KafkaConsumerClient)
-	if !ok {
-		t.Error("failed to switch type to *KafkaConsumerClient")
+		err = consumer.Create()
+		if err != nil {
+			t.Error(err)
+		}
+
 	}
 
-	err = consumer.Create()
-	if err != nil {
-		t.Error(err)
-	}
 }

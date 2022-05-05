@@ -35,7 +35,7 @@ func (s *Signal) ReceiveShutDown() {
 
 func (s *Signal) SendDone(signal bool) {
 	s.done <- signal
-	log.Infof("sent done signal: %v", signal)
+	logger.Infof("sent done signal: %v", signal)
 }
 
 func (s *Signal) ReceiveDone() {

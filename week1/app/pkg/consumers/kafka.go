@@ -71,6 +71,7 @@ func (kc *KafkaConsumerClient) Create() error {
 	if err != nil {
 		return err
 	}
+	logger.Debugf("Check in consumer creation: %s", kc.kafkaConsumer)
 	return nil
 
 }

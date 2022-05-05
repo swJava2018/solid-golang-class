@@ -1,11 +1,8 @@
-# Installing Kafka via Homebrew
-macOS
-```
-$ brew install kafka
-```
+## Pre-requisites
+* Docker Desktop 
+https://docs.docker.com/desktop/mac/install/
 
-# Run Kafka
-macOS
+### Installing Kafka & Kafka UI
 ```
-$ brew services start kafka
+$ docker compose -f kafka-ui.yaml
 ```

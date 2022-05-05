@@ -2,7 +2,10 @@ package consumers
 
 import (
 	"context"
+	"errors"
 	"event-data-pipeline/pkg/logger"
+	"fmt"
+	"strings"
 )
 
 type (
@@ -39,4 +42,22 @@ func Register(name string, factory ConsumerFactory) {
 		logger.Errorf("Consumer factory %s already registered. Ignoring.", name)
 	}
 	consumerFactories[name] = factory
+}
+
+// CreateConsumer is a factory method that will create the named consumer
+func CreateConsumer(name string, config jsonObj) (Consumer, error) {
+
+	factory, ok := consumerFactories[name]
+	if !ok {
+		// Factory has not been registered.
+		// Make a list of all available datastore factories for logging.
+		availableConsumers := make([]string, 0)
+		for k := range consumerFactories {
+			availableConsumers = append(availableConsumers, k)
+		}
+		return nil, errors.New(fmt.Sprintf("Invalid Consumer name. Must be one of: %s", strings.Join(availableConsumers, ", ")))
+	}
+
+	// Run the factory with the configuration.
+	return factory(config), nil
 }

@@ -29,12 +29,12 @@ type Config struct {
 	ServerWriteTimeout int    `json:"server_write_timeout"`
 	BasePath           string `json:"base_path"`
 	DebugEnabled       bool   `json:"debug_enabled,omitempty"`
-	CollectorConfsPath string `json:"logger_configs_path"`
-	CollectorConfs     []CollectorConf
+	PipelineCfgsPath   string `json:"logger_configs_path"`
+	PipelineCfgs       []PipelineCfg
 }
 
-// CollectorConf object is composed of a Service, Credentials, Kafka Config, and list of Processors
-type CollectorConf struct {
+// PipelineCfg object is composed of a Service, Credentials, Kafka Config, and list of Processors
+type PipelineCfg struct {
 	Consumer   *Consumer   `json:"consumer,omitempty" yaml:"consumer,omitempty"`
 	Processors []Processor `json:"processors,omitempty" yaml:"processors,omitempty"`
 }
@@ -96,14 +96,14 @@ func NewConfig() *Config {
 		BasePath:           cli.Args.BasePath,
 		DebugEnabled:       cli.Args.DebugEnabled,
 		ProductionMode:     !cli.Args.DebugEnabled,
-		CollectorConfsPath: cli.Args.Config,
+		PipelineCfgsPath:   cli.Args.Config,
 	}
 
 	return cfg
 }
 
-func NewCollectorConfig(path string) []*CollectorConf {
-	var cltrsCfArr []*CollectorConf
+func NewPipelineConfig(path string) []*PipelineCfg {
+	var cltrsCfArr []*PipelineCfg
 
 	if !PathExists(path) {
 		return cltrsCfArr
@@ -152,9 +152,9 @@ func NewCollectorConfig(path string) []*CollectorConf {
 // normalizeConfigStructure takes an array of collector configs that may have been
 // created from either yaml or json, and using jsoniter to help normalize the
 // underlying interface{}'s
-func normalizeConfigStructure(cfg []*CollectorConf) []*CollectorConf {
+func normalizeConfigStructure(cfg []*PipelineCfg) []*PipelineCfg {
 	cfsBytes, err := jsoniter.MarshalIndent(cfg, "", " ")
-	var cvntdConfs []*CollectorConf
+	var cvntdConfs []*PipelineCfg
 	err = json.Unmarshal(cfsBytes, &cvntdConfs)
 	if err != nil {
 		logger.Errorf(err.Error())
@@ -164,8 +164,8 @@ func normalizeConfigStructure(cfg []*CollectorConf) []*CollectorConf {
 	return cvntdConfs
 }
 
-func Unmarshal(ext string, body []byte) *CollectorConf {
-	var cltrCf *CollectorConf
+func Unmarshal(ext string, body []byte) *PipelineCfg {
+	var cltrCf *PipelineCfg
 	switch ext {
 	case EXT_JSON:
 		_ = json.Unmarshal([]byte(body), &cltrCf)
@@ -175,9 +175,9 @@ func Unmarshal(ext string, body []byte) *CollectorConf {
 	return cltrCf
 }
 
-func UnmarshalArr(ext string, body []byte) []*CollectorConf {
+func UnmarshalArr(ext string, body []byte) []*PipelineCfg {
 	var err error
-	var _cltrsCfArr []*CollectorConf
+	var _cltrsCfArr []*PipelineCfg
 	switch ext {
 	case EXT_JSON:
 		err = json.Unmarshal([]byte(body), &_cltrsCfArr)

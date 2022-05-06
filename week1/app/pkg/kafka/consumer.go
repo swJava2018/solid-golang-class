@@ -5,8 +5,7 @@ type PartitionsResponse struct {
 	Partitions []float64 `json:"partitions"`
 }
 
-type KafkaConsumer interface {
-	GetPartitions() (*PartitionsResponse, error)
+type Consumer interface {
 	CommitOffset(partition int, offset int) error
 	GetOffsetRange(partition int) (int, int, error)
 	GetCommittedOffset(partition int) (int, error)

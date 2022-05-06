@@ -18,6 +18,13 @@ type AdminClient struct {
 	partitions []kafka.PartitionMetadata
 }
 
+func NewAdminClient(topic string, consumer *kafka.Consumer) *AdminClient {
+	return &AdminClient{
+		topic:    topic,
+		consumer: consumer,
+	}
+}
+
 func (ac *AdminClient) GetPartitions() (*PartitionsResponse, error) {
 	// create admin client from a consumer
 	adminClient, err := kafka.NewAdminClientFromConsumer(ac.consumer)
@@ -32,6 +39,8 @@ func (ac *AdminClient) GetPartitions() (*PartitionsResponse, error) {
 	}
 	raw, _ := json.Marshal(md)
 	logger.Debugf("metadata: %v", string(raw))
+
+	//set partitions data to the admin client
 	ac.partitions = md.Topics[ac.topic].Partitions
 
 	partitionsResponse := PartitionsResponse{

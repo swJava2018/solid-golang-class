@@ -15,14 +15,8 @@ type (
 
 // consumer interface
 type Consumer interface {
-	//create Consumer instance
-	Create() error
-
 	//read data
-	Read(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) error
-
-	//delete Consumer instance
-	Delete() error
+	Consume(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) error
 }
 
 // a factory func type to instantiate a concrete Consumer type

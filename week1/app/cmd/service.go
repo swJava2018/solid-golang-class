@@ -15,17 +15,18 @@ type (
 	jsonArr = []interface{}
 )
 
-// Run is the entrypoint for running the http server & event log collector as a service
+// Run is the entrypoint for running pipeline
 func Run(cfg config.Config) {
+
 	// Force garbage collection
-	// go utils.GarbageCollector()
+	go GarbageCollector()
 
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	// create event log collector instance
-	// eventCollector, err := pipeline.NewEventCollector(cfg, collectorSignal)
+	// instantiate EventDataPipeline
+	eventCollector, err := pipeline.NewEventCollector(cfg, collectorSignal)
 
 	// if err != nil {
 	// 	log.Panicf(err.Error())

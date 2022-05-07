@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"event-data-pipeline/pkg/config"
+	"event-data-pipeline/pkg/logger"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"runtime/debug"
+	"time"
 )
 
 type (
@@ -34,4 +37,13 @@ func Run(cfg config.Config) {
 	// 	log.Panicf(err.Error())
 	// }
 
+}
+
+func GarbageCollector() {
+	gcTimer := time.NewTicker(1 * time.Second)
+
+	for t := range gcTimer.C {
+		logger.Debugf(t.String())
+		debug.FreeOSMemory()
+	}
 }

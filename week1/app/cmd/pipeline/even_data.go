@@ -1,25 +1,23 @@
 package pipeline
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"event-data-pipeline/pkg/config"
+	"event-data-pipeline/pkg/consumers"
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/pipelines"
-	"event-data-pipeline/pkg/sys"
-	"os"
+	"sync"
 )
 
 type EventDataPipeline struct {
 	p       *pipelines.Pipeline
 	Configs []*config.PipelineCfg
-	signal  *sys.Signal
 }
 
-func NewEventDataPipeline(cfg config.Config, signal *sys.Signal) (*EventDataPipeline, error) {
-	ec := &EventDataPipeline{
-		signal: signal,
-	}
+func NewEventDataPipeline(cfg config.Config) (*EventDataPipeline, error) {
+	ec := &EventDataPipeline{}
 
 	var err error
 	ec.Configs = config.NewPipelineConfig(cfg.PipelineCfgsPath)
@@ -34,7 +32,7 @@ func (e *EventDataPipeline) SetCollectorRuntimeConfig(confs []*config.PipelineCf
 	e.Configs = confs
 }
 
-func (e *EventDataPipeline) RunCollector(cfg config.Config) error {
+func (e *EventDataPipeline) Run(cfg config.Config) error {
 	if e == nil {
 		logger.Errorf("%t is %v", e, e)
 		return errors.New("Event logger Collector instance is nil")
@@ -53,30 +51,35 @@ func (e *EventDataPipeline) RunCollector(cfg config.Config) error {
 		logger.Infof("Loading CollectorConfs from file: %s", ObjectToJsonString(collectorConfs))
 	}
 
-	err := e.runCollector(e.Configs)
+	err := e.run(e.Configs)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (e *EventDataPipeline) runCollector(collectorConfs []*config.PipelineCfg) error {
+func (e *EventDataPipeline) run(cfgs []*config.PipelineCfg) error {
 
-	// var wg sync.WaitGroup
+	var wg sync.WaitGroup
 	// context with canel for graceful shutdown
-	// ctx, cancelFunc := context.WithCancel(context.Background())
-	// defer cancelFunc()
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
 
-	// 2. for each collector...
+	// loop through PipelineConfigs
+	for _, cfg := range cfgs {
+		wg.Add(1)
+		consumer, err := consumers.CreateConsumer(cfg.Consumer.Name, cfg.Consumer.Config)
+		if err != nil {
+			logger.Errorf("%v", err)
+			return err
+		}
+
+	}
+
 	// for _, conf := range collectorConfs {
 	// 	wg.Add(1)
 
 	// 	// Source
-	// 	consumer, err := consumers.CreateConsumer(conf.Consumer.Name, conf.Consumer.Config)
-	// 	if err != nil {
-	// 		logger.Errorf("%v", err)
-	// 		return err
-	// 	}
 
 	// Muliple Processors
 	// _processors := make([]processors.Processor, len(conf.Processors))
@@ -105,14 +108,6 @@ func (e *EventDataPipeline) runCollector(collectorConfs []*config.PipelineCfg) e
 	// go e.signal.SendDone(true) // send shutdown done signal to receiver
 	// logger.Infof("\n*********************************\nGraceful shutdown completed      \n*********************************")
 	return nil
-}
-
-func (e *EventDataPipeline) WaitCollectorShutDown() {
-	e.signal.ReceiveDone()
-}
-
-func (e *EventDataPipeline) ShutdownCollector(signal os.Signal) {
-	e.signal.SendShutDown(signal)
 }
 
 func (e *EventDataPipeline) GetCollectorRuntimeConfig() []*config.PipelineCfg {

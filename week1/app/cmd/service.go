@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"event-data-pipeline/cmd/pipeline"
 	"event-data-pipeline/pkg/config"
 	"event-data-pipeline/pkg/logger"
 	"log"
@@ -26,7 +27,7 @@ func Run(cfg config.Config) {
 	}()
 
 	// instantiate EventDataPipeline
-	eventCollector, err := pipeline.NewEventCollector(cfg, collectorSignal)
+	pipeline.NewEventDataPipeline()
 
 	// if err != nil {
 	// 	log.Panicf(err.Error())

@@ -64,7 +64,7 @@ func (kc *KafkaConsumer) Create() error {
 
 }
 
-func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) ([]byte, error) {
+func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) error {
 
 	// Create an consumer instance initially
 	kc.Create()
@@ -76,38 +76,22 @@ func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}, errc
 	prttnsResps, err := ac.GetPartitions()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	// loop through partitions
 	for _, p := range prttnsResps.Partitions {
 
 		// Copy outer KafkaConsumer
-		c := kc.Copy()
+		ckc := kc.Copy()
 		// Instantiate inner kafka.Consumer
-		c.Create()
+		ckc.Create()
 		// Assign partition to the consumer
-		c.AssignPartition(int(p))
+		ckc.AssignPartition(int(p))
 
 		// spin up go routine per partition
-
+		ckc.Poll(stream, errc)
 	}
-	// get partitions
-	// loop through partitions
-	// run go routing per partition
-	/// send event data through input channel
-	var message []byte
-	ev := kc.kafkaConsumer.Poll(100)
-	switch e := ev.(type) {
-	case *kafka.Message:
-		message, err = json.Marshal(e)
-		logger.Debugf("Message on p[%v]: %v", e.TopicPartition.Partition, string(message))
-	case kafka.Error:
-		err = e
-		logger.Errorf("Error: %v: %v", e.Code(), e)
-	case kafka.PartitionEOF:
-		logger.Debugf("[PartitionEOF][Consumer: %s][Topic: %v][Partition: %v][Offset: %d][Message: %v]", kc.kafkaConsumer.String(), *e.Topic, e.Partition, e.Offset, fmt.Sprintf("\"%s\"", e.Error.Error()))
-	}
-	return message, err
+	return nil
 }
 
 //Copy KafkaConsumer instance
@@ -130,6 +114,33 @@ func (kc *KafkaConsumer) AssignPartition(partition int) error {
 		return err
 	}
 	return err
+}
+
+//delete kafkaClient instance
+func (kc *KafkaConsumer) Poll(stream chan<- interface{}, errc chan<- error) {
+	for {
+		var message []byte
+		var err error
+		ev := kc.kafkaConsumer.Poll(100)
+		switch e := ev.(type) {
+		case *kafka.Message:
+			message, err = json.Marshal(e)
+			if err != nil {
+				logger.Errorf(e.String())
+				errc <- err
+				continue
+			}
+			// write message to the stream
+			stream <- message
+			logger.Debugf("Message on p[%v]: %v", e.TopicPartition.Partition, string(message))
+		case kafka.Error:
+			//TODO: check switch type
+			errc <- ev.(error)
+			logger.Errorf("Error: %v: %v", e.Code(), e)
+		case kafka.PartitionEOF:
+			logger.Debugf("[PartitionEOF][Consumer: %s][Topic: %v][Partition: %v][Offset: %d][Message: %v]", kc.kafkaConsumer.String(), *e.Topic, e.Partition, e.Offset, fmt.Sprintf("\"%s\"", e.Error.Error()))
+		}
+	}
 }
 
 //delete kafkaClient instance

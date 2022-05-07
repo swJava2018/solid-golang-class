@@ -39,8 +39,7 @@ func TestConsumerKafkaCreate(t *testing.T) {
 		if !ok {
 			t.Error("failed to switch type to *KafkaConsumerClient")
 		}
-
-		err = consumer.Create()
+		err = consumer.kafkaConsumer.Create()
 		if err != nil {
 			t.Error(err)
 		}
@@ -49,7 +48,7 @@ func TestConsumerKafkaCreate(t *testing.T) {
 
 }
 
-func TestConsumerKafkaRead(t *testing.T) {
+func TestConsumerKafkaConsume(t *testing.T) {
 	configPath := getCurDir() + "/test/consumers/config.json"
 	os.Setenv("EDP_ENABLE_DEBUG_LOGGING", "true")
 	os.Setenv("EDP_CONFIG", configPath)
@@ -71,7 +70,7 @@ func TestConsumerKafkaRead(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		consumer.Read(context.TODO(), nil, nil, nil)
+		consumer.Consume(context.TODO(), nil, nil, nil)
 
 	}
 

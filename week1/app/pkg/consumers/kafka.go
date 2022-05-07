@@ -54,7 +54,7 @@ func (kc *KafkaConsumerClient) Consume(ctx context.Context, stream chan interfac
 	/// send event data through input channel
 	var err error
 	// ev := kc.kafkaConsumer.Poll(100)
-	kc.kafkaConsumer.Read()
+	kc.kafkaConsumer.Read(ctx, stream, errc, shutdown)
 
 	// pass the event to output channel
 	// which is input channel of a processor that implements StageRunner

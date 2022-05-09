@@ -5,7 +5,6 @@ import (
 	"event-data-pipeline/pkg/config"
 	"event-data-pipeline/pkg/logger"
 	"log"
-	"net/http"
 	_ "net/http/pprof"
 	"runtime/debug"
 	"time"
@@ -22,23 +21,24 @@ func Run(cfg config.Config) {
 	// Force garbage collection
 	go GarbageCollector()
 
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
+	// EventDataPipeline 타입의 인스턴스를 생성합니다.
+	edp, err := pipeline.NewEventDataPipeline(cfg)
 
-	// instantiate EventDataPipeline
-	pipeline.NewEventDataPipeline()
+	// 파이프라인 인스턴스 생성에 실패할 경우
+	// 프로그램 동작을 멈춥니다.
+	if err != nil {
+		log.Panicf(err.Error())
+	}
 
-	// if err != nil {
-	// 	log.Panicf(err.Error())
-	// }
+	// 설정 값 유효 성을 통과하지 못할 경우
+	// 프로그램 동작을 멈춥니다.
+	err = edp.ValidateConfigs()
+	if err != nil {
+		log.Panicf(err.Error())
+	}
 
-	// // Run elc second
-	// err = eventCollector.RunCollector(cfg)
-	// if err != nil {
-	// 	log.Panicf(err.Error())
-	// }
-
+	// 파이프라인 프로세스를 구동하는 메소드
+	edp.Run()
 }
 
 func GarbageCollector() {

@@ -12,16 +12,21 @@ import (
 )
 
 type EventDataPipeline struct {
-	p       *pipelines.Pipeline
-	Configs []*config.PipelineCfg
+	p        *pipelines.Pipeline
+	CfgsPath string
+	Cfgs     []*config.PipelineCfg
 }
 
 func NewEventDataPipeline(cfg config.Config) (*EventDataPipeline, error) {
 	ec := &EventDataPipeline{}
 
+	// 설정 정보 경로 값 인스턴스에 저장.
+	ec.CfgsPath = cfg.PipelineCfgsPath
+
 	var err error
-	ec.Configs = config.NewPipelineConfig(cfg.PipelineCfgsPath)
-	if ec.Configs == nil {
+	// 제공된 경로로 부터 설정 정보를 읽어옵니다.
+	ec.Cfgs = config.NewPipelineConfig(cfg.PipelineCfgsPath)
+	if ec.Cfgs == nil {
 		logger.Errorf("loaded configuration is nil")
 		err = errors.New("loaded configuration is nil")
 	}
@@ -29,39 +34,40 @@ func NewEventDataPipeline(cfg config.Config) (*EventDataPipeline, error) {
 }
 
 func (e *EventDataPipeline) SetCollectorRuntimeConfig(confs []*config.PipelineCfg) {
-	e.Configs = confs
+	e.Cfgs = confs
 }
 
-func (e *EventDataPipeline) Run(cfg config.Config) error {
+func (e *EventDataPipeline) ValidateConfigs() error {
+	// 인스턴스가 제로값인 경우 에러를 반환.
 	if e == nil {
 		logger.Errorf("%t is %v", e, e)
-		return errors.New("Event logger Collector instance is nil")
-	}
-	var collectorConfs []*config.PipelineCfg
-
-	// load from memory for runtime config modification reflection
-	if e.Configs != nil {
-		collectorConfs = e.Configs
-		logger.Debugf("Loading CollectorConfs from memory: %s", ObjectToJsonString(collectorConfs))
+		return errors.New("EventDataPipeline instance is nil")
 	}
 
-	// load from file if memory missing
-	if collectorConfs == nil {
-		collectorConfs := config.NewPipelineConfig(cfg.PipelineCfgsPath)
-		logger.Infof("Loading CollectorConfs from file: %s", ObjectToJsonString(collectorConfs))
+	// 메모리에 로드된 설정 정보를 출력.
+	if e.Cfgs != nil {
+		logger.Debugf("Loading EventDataPipeline Configs from memory: %s", ObjectToJsonString(e.Cfgs))
 	}
 
-	err := e.run(e.Configs)
-	if err != nil {
-		return err
+	// 메모리 상 설정 값이 비어있는 경우
+	// 파일로부터 다시 읽기를 시도
+	if e.Cfgs == nil {
+		e.Cfgs = config.NewPipelineConfig(e.CfgsPath)
+		logger.Infof("Loading EventDataPipeline Configs from file : %s", ObjectToJsonString(e.Cfgs))
+	}
+	if e.Cfgs == nil {
+		return errors.New("did not pass configs validation.")
 	}
 	return nil
 }
 
-func (e *EventDataPipeline) run(cfgs []*config.PipelineCfg) error {
+// 파이프라인을 구동하는 메소드
+func (e *EventDataPipeline) Run() error {
 
+	// Goroutine 실행 후 대기를 위한 WaiterGroup
 	var wg sync.WaitGroup
-	// context with canel for graceful shutdown
+
+	// Graceful Shutdown 을 위한 Context, CancelFunction
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
@@ -111,7 +117,7 @@ func (e *EventDataPipeline) run(cfgs []*config.PipelineCfg) error {
 }
 
 func (e *EventDataPipeline) GetCollectorRuntimeConfig() []*config.PipelineCfg {
-	return e.Configs
+	return e.Cfgs
 }
 
 func ObjectToJsonString(obj interface{}) string {

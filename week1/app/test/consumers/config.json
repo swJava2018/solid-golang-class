@@ -18,6 +18,11 @@
                     "heartbeat.interval.ms": "15000"
                 }
             }
-        }
+        },
+        "processors": [
+            {
+                "name": ""
+            }
+        ]
     }
 ]

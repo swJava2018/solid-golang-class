@@ -35,54 +35,12 @@ type Config struct {
 
 // PipelineCfg object is composed of a Service, Credentials, Kafka Config, and list of Processors
 type PipelineCfg struct {
-	Consumer   *Consumer   `json:"consumer,omitempty" yaml:"consumer,omitempty"`
-	Processors []Processor `json:"processors,omitempty" yaml:"processors,omitempty"`
+	Consumer   *Consumer      `json:"consumer,omitempty" yaml:"consumer,omitempty"`
+	Processors []ProcessorCfg `json:"processors,omitempty" yaml:"processors,omitempty"`
 }
 
-// Credentials include Mix 3 oauth settings
-type Credentials struct {
-	AuthDisabled  bool   `json:"auth_disabled"`
-	TokenURL      string `json:"token_url,omitempty"`
-	ClientID      string `json:"client_id,omitempty"`
-	ClientSecret  string `json:"client_secret,omitempty"`
-	Scope         string `json:"scope,omitempty"`
-	AuthTimeoutMS int    `json:"auth_timeout_ms,omitempty"`
-}
-
-type Consumer struct {
-	Name   string                 `json:"name,omitempty" yaml:"name,omitempty"`
-	Config map[string]interface{} `json:",omitempty" yaml:",omitempty"`
-}
-
-type Transformer struct {
-	Type   string                 `json:"type,omitempty" yaml:"type,omitempty"`
-	Config map[string]interface{} `json:",omitempty" yaml:",omitempty"`
-}
-
-type Storage struct {
-	Type   string                 `json:"type,omitempty" yaml:"type,omitempty"`
-	Config map[string]interface{} `json:",omitempty" yaml:",omitempty"`
-}
-
-type Cache struct {
-	Type   string                 `json:"type,omitempty" yaml:"type,omitempty"`
-	Config map[string]interface{} `json:",omitempty" yaml:",omitempty"`
-}
-type MessageQueue struct {
-	Type   string                 `json:"type,omitempty" yaml:"type,omitempty"`
-	Config map[string]interface{} `json:",omitempty" yaml:",omitempty"`
-}
-
-// Processor includes all settings required to process call logger data,
-// including logger data transformers, rate limits to apply when calling storage,
-// storage, and content type filters
-type Processor struct {
-	Name              string       `json:"name,omitempty" yaml:"name,omitempty"`
-	Transformer       *Transformer `json:"transformer,omitempty" yaml:"transformer,omitempty"`
-	RateLimit         *int         `json:"rate_limit" yaml:"rate_limit"`
-	Storage           *[]Storage   `json:"storage,omitempty" yaml:"storage,omitempty"`
-	ContentTypeFilter []string     `json:"content_type_filter,omitempty" yaml:"content_type_filter,omitempty"`
-	Cache             *Cache       `json:"cache,omitempty" yaml:"cache,omitempty"`
+type ProcessorCfg struct {
+	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 }
 
 // NewConfig creates an instance of Config from command-line args and/or env vars

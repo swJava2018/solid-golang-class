@@ -8,25 +8,26 @@ import (
 	"event-data-pipeline/pkg/consumers"
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/pipelines"
+	"event-data-pipeline/pkg/processors"
 	"sync"
 )
 
 type EventDataPipeline struct {
 	p        *pipelines.Pipeline
-	CfgsPath string
-	Cfgs     []*config.PipelineCfg
+	cfgsPath string
+	cfgs     []*config.PipelineCfg
 }
 
 func NewEventDataPipeline(cfg config.Config) (*EventDataPipeline, error) {
 	ec := &EventDataPipeline{}
 
 	// 설정 정보 경로 값 인스턴스에 저장.
-	ec.CfgsPath = cfg.PipelineCfgsPath
+	ec.cfgsPath = cfg.PipelineCfgsPath
 
 	var err error
 	// 제공된 경로로 부터 설정 정보를 읽어옵니다.
-	ec.Cfgs = config.NewPipelineConfig(cfg.PipelineCfgsPath)
-	if ec.Cfgs == nil {
+	ec.cfgs = config.NewPipelineConfig(cfg.PipelineCfgsPath)
+	if ec.cfgs == nil {
 		logger.Errorf("loaded configuration is nil")
 		err = errors.New("loaded configuration is nil")
 	}
@@ -34,7 +35,7 @@ func NewEventDataPipeline(cfg config.Config) (*EventDataPipeline, error) {
 }
 
 func (e *EventDataPipeline) SetCollectorRuntimeConfig(confs []*config.PipelineCfg) {
-	e.Cfgs = confs
+	e.cfgs = confs
 }
 
 func (e *EventDataPipeline) ValidateConfigs() error {
@@ -45,17 +46,17 @@ func (e *EventDataPipeline) ValidateConfigs() error {
 	}
 
 	// 메모리에 로드된 설정 정보를 출력.
-	if e.Cfgs != nil {
-		logger.Debugf("Loading EventDataPipeline Configs from memory: %s", ObjectToJsonString(e.Cfgs))
+	if e.cfgs != nil {
+		logger.Debugf("Loading EventDataPipeline Configs from memory: %s", ObjectToJsonString(e.cfgs))
 	}
 
 	// 메모리 상 설정 값이 비어있는 경우
 	// 파일로부터 다시 읽기를 시도
-	if e.Cfgs == nil {
-		e.Cfgs = config.NewPipelineConfig(e.CfgsPath)
-		logger.Infof("Loading EventDataPipeline Configs from file : %s", ObjectToJsonString(e.Cfgs))
+	if e.cfgs == nil {
+		e.cfgs = config.NewPipelineConfig(e.cfgsPath)
+		logger.Infof("Loading EventDataPipeline Configs from file : %s", ObjectToJsonString(e.cfgs))
 	}
-	if e.Cfgs == nil {
+	if e.cfgs == nil {
 		return errors.New("did not pass configs validation.")
 	}
 	return nil
@@ -72,23 +73,24 @@ func (e *EventDataPipeline) Run() error {
 	defer cancelFunc()
 
 	// loop through PipelineConfigs
-	for _, cfg := range cfgs {
+	for _, cfg := range e.cfgs {
 		wg.Add(1)
+
+		// 이벤트 기반 데이터를 소비하는 컨슈머 생성
 		consumer, err := consumers.CreateConsumer(cfg.Consumer.Name, cfg.Consumer.Config)
 		if err != nil {
 			logger.Errorf("%v", err)
 			return err
 		}
+		logger.Debugf("%v consumer created", consumer)
+
+		// 컨슈머로 부터 데이터를 받아 처리하는 0개 이상의 프로세서 슬라이스 초기화
+		processors := make([]processors.Processor, len(cfg.Processors))
+		for _, p := range cfg.Processors {
+
+		}
 
 	}
-
-	// for _, conf := range collectorConfs {
-	// 	wg.Add(1)
-
-	// 	// Source
-
-	// Muliple Processors
-	// _processors := make([]processors.Processor, len(conf.Processors))
 
 	// Multiple Sink
 	// _storage := make([]storage.Storage, len(*p.Storage))
@@ -117,7 +119,7 @@ func (e *EventDataPipeline) Run() error {
 }
 
 func (e *EventDataPipeline) GetCollectorRuntimeConfig() []*config.PipelineCfg {
-	return e.Cfgs
+	return e.cfgs
 }
 
 func ObjectToJsonString(obj interface{}) string {

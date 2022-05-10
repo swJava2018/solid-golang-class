@@ -35,7 +35,7 @@ type Config struct {
 
 // PipelineCfg object is composed of a Service, Credentials, Kafka Config, and list of Processors
 type PipelineCfg struct {
-	Consumer   *Consumer      `json:"consumer,omitempty" yaml:"consumer,omitempty"`
+	Consumer   *ConsumerCfg   `json:"consumer,omitempty" yaml:"consumer,omitempty"`
 	Processors []ProcessorCfg `json:"processors,omitempty" yaml:"processors,omitempty"`
 }
 

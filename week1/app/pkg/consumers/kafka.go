@@ -47,16 +47,23 @@ func NewKafkaConsumerClient(config jsonObj) Consumer {
 }
 
 func (kc *KafkaConsumerClient) Consume(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) error {
-	// create admin client
-	// get partitions
-	// loop through partitions
-	// run go routing per partition
-	/// send event data through input channel
 	var err error
-	// ev := kc.kafkaConsumer.Poll(100)
+
+	// Create Kafka Consumer
+	err = kc.kafkaConsumer.Create()
+	if err != nil {
+		return err
+	}
+	// create admin client from the consumer created
+	kc.kafkaConsumer.CreateAdmin()
+
+	// get partitions to read
+	err = kc.kafkaConsumer.GetPartitions()
+	if err != nil {
+		return err
+	}
+	// Read
 	kc.kafkaConsumer.Read(ctx, stream, errc, shutdown)
 
-	// pass the event to output channel
-	// which is input channel of a processor that implements StageRunner
 	return err
 }

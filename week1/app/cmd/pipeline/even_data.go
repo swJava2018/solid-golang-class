@@ -103,18 +103,9 @@ func (e *EventDataPipeline) Run() error {
 	// 	}
 	// }
 
-	// e. create event logger collector
-	// collector := .NewCollector(consumer, _processors)
+	//Run Process
+	e.p.Process(ctx, nil, nil)
 
-	// f. run event logger collector
-	// go collector.Start(ctx, &wg)
-	// }
-	// e.signal.ReceiveShutDown() // blocks until shutdown signal
-	// logger.Infof("\n*********************************\nGraceful shutdown signal received\n*********************************")
-	// cancelFunc() // Signal cancellation to context.Context
-	// wg.Wait()
-	// go e.signal.SendDone(true) // send shutdown done signal to receiver
-	// logger.Infof("\n*********************************\nGraceful shutdown completed      \n*********************************")
 	return nil
 }
 

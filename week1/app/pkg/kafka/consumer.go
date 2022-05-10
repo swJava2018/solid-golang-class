@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"event-data-pipeline/pkg/logger"
+	"event-data-pipeline/pkg/pipelines"
 	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -27,6 +28,12 @@ type KafkaConsumer struct {
 
 	//confluent kafka go consumer
 	kafkaConsumer *kafka.Consumer
+
+	//adminClient to get partitions
+	adminClient *AdminClient
+
+	//partitions response
+	partitions *PartitionsResponse
 }
 
 func NewKafkaConsumer(topic string, config jsonObj) *KafkaConsumer {
@@ -64,22 +71,24 @@ func (kc *KafkaConsumer) Create() error {
 
 }
 
-func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) error {
+func (kc *KafkaConsumer) CreateAdmin() {
+	kc.adminClient = NewAdminClient(kc.topic, kc.kafkaConsumer)
+}
 
-	// Create an consumer instance initially
-	kc.Create()
-
-	// create admin client from the consumer created
-	ac := NewAdminClient(kc.topic, kc.kafkaConsumer)
-
+func (kc *KafkaConsumer) GetPartitions() error {
+	var err error
 	// get partitions from admin client
-	prttnsResps, err := ac.GetPartitions()
-
+	kc.partitions, err = kc.adminClient.GetPartitions()
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) error {
+
 	// loop through partitions
-	for _, p := range prttnsResps.Partitions {
+	for _, p := range kc.partitions.Partitions {
 
 		// Copy outer KafkaConsumer
 		ckc := kc.Copy()
@@ -118,6 +127,10 @@ func (kc *KafkaConsumer) AssignPartition(partition int) error {
 
 //delete kafkaClient instance
 func (kc *KafkaConsumer) Poll(stream chan<- interface{}, errc chan<- error) {
+
+	//Next
+	//Payload
+	//Error
 	for {
 		var message []byte
 		var err error
@@ -141,6 +154,20 @@ func (kc *KafkaConsumer) Poll(stream chan<- interface{}, errc chan<- error) {
 			logger.Debugf("[PartitionEOF][Consumer: %s][Topic: %v][Partition: %v][Offset: %d][Message: %v]", kc.kafkaConsumer.String(), *e.Topic, e.Partition, e.Offset, fmt.Sprintf("\"%s\"", e.Error.Error()))
 		}
 	}
+}
+
+// Check if Next Payload exists
+func (kc *KafkaConsumer) Next(context.Context) bool {
+
+	return false
+
+}
+
+// Get Payload
+func (kc *KafkaConsumer) Payload() pipelines.Payload {
+
+	return false
+
 }
 
 //delete kafkaClient instance

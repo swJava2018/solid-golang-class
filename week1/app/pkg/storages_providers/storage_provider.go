@@ -10,36 +10,36 @@ type (
 	jsonObj = map[string]interface{}
 	jsonArr = []interface{}
 )
-type Storage interface {
+type StorageProvider interface {
 	Write(key string, path string, data []byte) (int, error)
 }
 
-type StorageFactory func(config jsonObj) Storage
+type StorageProviderFactory func(config jsonObj) StorageProvider
 
-var storageFactories = make(map[string]StorageFactory)
+var storageProviderFactories = make(map[string]StorageProviderFactory)
 
 // Each storage implementation must Register itself
-func Register(name string, factory StorageFactory) {
+func Register(name string, factory StorageProviderFactory) {
 	logger.Debugf("Registering storage factory for %s", name)
 	if factory == nil {
 		logger.Panicf("Storage factory %s does not exist.", name)
 	}
-	_, registered := storageFactories[name]
+	_, registered := storageProviderFactories[name]
 	if registered {
 		logger.Errorf("Storage factory %s already registered. Ignoring.", name)
 	}
-	storageFactories[name] = factory
+	storageProviderFactories[name] = factory
 }
 
-// CreateStorage is a factory method that will create the named storage
-func CreateStorage(name string, config jsonObj) (Storage, error) {
+// CreateStorageProvider is a factory method that will create the named storage
+func CreateStorageProvider(name string, config jsonObj) (StorageProvider, error) {
 
-	factory, ok := storageFactories[name]
+	factory, ok := storageProviderFactories[name]
 	if !ok {
 		// Factory has not been registered.
 		// Make a list of all available datastore factories for logging.
 		availableStorages := make([]string, 0)
-		for k := range storageFactories {
+		for k := range storageProviderFactories {
 			availableStorages = append(availableStorages, k)
 		}
 		return nil, fmt.Errorf("invalid Storage name. Must be one of: %s", strings.Join(availableStorages, ", "))

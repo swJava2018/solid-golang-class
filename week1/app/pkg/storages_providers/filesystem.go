@@ -1,1 +1,116 @@
 package storages_providers
+
+import (
+	"context"
+	"encoding/json"
+	"event-data-pipeline/pkg/concur"
+	"event-data-pipeline/pkg/fs"
+	"event-data-pipeline/pkg/logger"
+	"event-data-pipeline/pkg/ratelimit"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"sync"
+	"time"
+
+	"golang.org/x/time/rate"
+)
+
+func init() {
+	Register("filesystem", NewFilesystemClient)
+}
+
+// Filesystem Config includes storage settings for filesystem
+type FsCfg struct {
+	Path string `json:"path,omitempty"`
+}
+
+type FilesystemClient struct {
+	RootDir string
+	file    fs.File
+	count   int
+	record  chan interface{}
+	mu      sync.Mutex
+	ticker  *time.Ticker
+	done    chan bool
+
+	workers *concur.WorkerPool
+
+	// 소스나 프로세서로 부터 데이터를 넘겨 받는 인풋 채널.
+	inCh chan interface{}
+
+	rateLimiter *rate.Limiter
+}
+
+func NewFilesystemClient(config jsonObj) StorageProvider {
+	var fsc FsCfg
+	// 바이트로 변환
+	cfgByte, _ := json.Marshal(config)
+
+	// 설정파일 Struct 으로 Load
+	json.Unmarshal(cfgByte, &fsc)
+
+	fc := &FilesystemClient{
+		RootDir: fsc.Path,
+
+		inCh:   make(chan interface{}),
+		record: make(chan interface{}),
+		done:   make(chan bool),
+		ticker: time.NewTicker(300000 * time.Millisecond),
+		count:  0,
+		//TODO: 설정으로부터 가져올것.
+		rateLimiter: ratelimit.NewRateLimiter(*&ratelimit.RateLimit{Limit: 10, Burst: 0}),
+	}
+
+	fc.workers = concur.NewWorkerPool("filesystem-workers", fc.inCh, 1, fc.Write)
+	fc.workers.Start()
+
+	return fc
+}
+
+func (f *FilesystemClient) Write(data interface{}) {
+	if data != nil {
+		f.mu.Lock()
+		f.file = fs.NewFile(key, path, data)
+		f.count += 1
+		f.mu.Unlock()
+		go f.commit()
+
+	}
+}
+
+func (f *FilesystemClient) commit() (int, error) {
+	ctx := context.Background()
+	retry := 0
+
+	for {
+		startWait := time.Now()
+		f.rateLimiter.Wait(ctx)
+		logger.Debugf("rate limited for %f seconds", time.Since(startWait).Seconds())
+		f.mu.Lock()
+		file := f.file
+
+		//TODO:: 리트라이 리밋 설정값으로부터 가져올것.
+		limit := 1
+		defer f.mu.Unlock()
+
+		defer func() {
+			if err := recover(); err != nil {
+				logger.Println("Write to file failed:", err)
+			}
+		}()
+
+		os.MkdirAll(fmt.Sprintf("%s/%s", f.RootDir, f.file.SubDir), 0775)
+		err := ioutil.WriteFile(fmt.Sprintf("%s/%s/%s", f.RootDir, file.SubDir, file.Name), file.Data, 0775)
+		if err == nil {
+			return len(file.Data), nil
+		}
+
+		retry++
+		if limit >= 0 && retry >= limit {
+			return 0, err
+		}
+		//TODO:: 딜레이 설정 값으로부터 가져올 것.
+		time.Sleep(time.Duration(5) * time.Second)
+	}
+}

@@ -19,9 +19,11 @@ require (
 	github.com/BurntSushi/toml v1.1.0 // indirect
 	github.com/alexflint/go-scalar v1.1.0 // indirect
 	github.com/confluentinc/confluent-kafka-go v1.8.2
+	github.com/google/uuid v1.3.0
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
+	golang.org/x/time v0.0.0-20220411224347-583f2d630306
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )

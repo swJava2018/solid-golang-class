@@ -96,10 +96,10 @@ func (e *EventDataPipeline) Run() error {
 			proccers = append(proccers, processor)
 		}
 		// 스토리지 프로바이더 생성
-		storageProviders := make([]storages_providers.Storage, len(cfg.Storages))
+		storageProviders := make([]storages_providers.StorageProvider, len(cfg.Storages))
 		for i, s := range cfg.Storages {
 			logger.Debugf("storage[%d]: %v", i, s.Type)
-			storageProviders[i], err = storages_providers.CreateStorage(s.Type, s.Config)
+			storageProviders[i], err = storages_providers.CreateStorageProvider(s.Type, s.Config)
 			if err != nil {
 				logger.Errorf("%v", err)
 				return err

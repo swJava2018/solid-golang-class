@@ -9,6 +9,7 @@ import (
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/pipelines"
 	"event-data-pipeline/pkg/processors"
+	"event-data-pipeline/pkg/storages_providers"
 	"sync"
 )
 
@@ -85,25 +86,25 @@ func (e *EventDataPipeline) Run() error {
 		logger.Debugf("%v consumer created", consumer)
 
 		// 컨슈머로 부터 데이터를 받아 처리하는 0개 이상의 프로세서 슬라이스 초기화
-		stageRunners := make([]processors.Processor, len(cfg.Processors))
+		proccers := make([]processors.Processor, len(cfg.Processors))
 		for _, p := range cfg.Processors {
 			processor, err := processors.CreateProcessor(p.Name, p.Config)
 			if err != nil {
 				return err
 			}
 			// 스테이지 러너에 생성된 프로세서를 등록
-			stageRunners = append(stageRunners, processor)
+			proccers = append(proccers, processor)
 		}
 		// 스토리지 프로바이더 생성
-		_storage := make([]cfg.Storage, len(*p.Storage))
-		// for i, s := range *p.Storage {
-		// 	logger.Debugf("storage[%d]: %v", i, s.Type)
-		// 	_storage[i], err = storage.CreateStorage(s.Type, s.Config)
-		// 	if err != nil {
-		// 		logger.Errorf("%v", err)
-		// 		return err
-		// 	}
-		// }
+		storageProviders := make([]storages_providers.Storage, len(cfg.Storages))
+		for i, s := range cfg.Storages {
+			logger.Debugf("storage[%d]: %v", i, s.Type)
+			storageProviders[i], err = storages_providers.CreateStorage(s.Type, s.Config)
+			if err != nil {
+				logger.Errorf("%v", err)
+				return err
+			}
+		}
 
 	}
 

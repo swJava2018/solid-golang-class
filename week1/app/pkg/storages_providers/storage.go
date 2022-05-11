@@ -1,4 +1,4 @@
-package storages
+package storages_providers
 
 import (
 	"event-data-pipeline/pkg/logger"

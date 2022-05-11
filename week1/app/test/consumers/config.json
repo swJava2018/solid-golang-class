@@ -23,6 +23,14 @@
             {
                 "name": "noop"
             }
+        ],
+        "storages": [
+            {
+                "name": "filesystem",
+                "config": {
+                    "path": "fs/"
+                }
+            }
         ]
     }
 ]

@@ -94,19 +94,18 @@ func (e *EventDataPipeline) Run() error {
 			// 스테이지 러너에 생성된 프로세서를 등록
 			stageRunners = append(stageRunners, processor)
 		}
+		// 스토리지 프로바이더 생성
+		_storage := make([]cfg.Storage, len(*p.Storage))
+		// for i, s := range *p.Storage {
+		// 	logger.Debugf("storage[%d]: %v", i, s.Type)
+		// 	_storage[i], err = storage.CreateStorage(s.Type, s.Config)
+		// 	if err != nil {
+		// 		logger.Errorf("%v", err)
+		// 		return err
+		// 	}
+		// }
 
 	}
-
-	// Multiple Sink
-	// _storage := make([]storage.Storage, len(*p.Storage))
-	// for i, s := range *p.Storage {
-	// 	logger.Debugf("storage[%d]: %v", i, s.Type)
-	// 	_storage[i], err = storage.CreateStorage(s.Type, s.Config)
-	// 	if err != nil {
-	// 		logger.Errorf("%v", err)
-	// 		return err
-	// 	}
-	// }
 
 	//Run Process
 	e.p.Process(ctx, nil, nil)

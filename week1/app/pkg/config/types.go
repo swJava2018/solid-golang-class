@@ -5,7 +5,7 @@ type ConsumerCfg struct {
 	Config map[string]interface{} `json:",omitempty" yaml:",omitempty"`
 }
 
-type Storage struct {
+type StorageCfg struct {
 	Type   string                 `json:"type,omitempty" yaml:"type,omitempty"`
 	Config map[string]interface{} `json:",omitempty" yaml:",omitempty"`
 }

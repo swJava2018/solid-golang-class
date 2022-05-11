@@ -37,6 +37,7 @@ type Config struct {
 type PipelineCfg struct {
 	Consumer   *ConsumerCfg   `json:"consumer,omitempty" yaml:"consumer,omitempty"`
 	Processors []ProcessorCfg `json:"processors,omitempty" yaml:"processors,omitempty"`
+	Storages   []StorageCfg   `json:"storages,omitempty" yaml:"storages,omitempty"`
 }
 
 type ProcessorCfg struct {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"event-data-pipeline/pkg/logger"
-	"event-data-pipeline/pkg/pipelines"
 	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -164,11 +163,11 @@ func (kc *KafkaConsumer) Next(context.Context) bool {
 }
 
 // Get Payload
-func (kc *KafkaConsumer) Payload() pipelines.Payload {
+// func (kc *KafkaConsumer) Payload() pipelines.Payload {
 
-	return false
+// 	return false
 
-}
+// }
 
 //delete kafkaClient instance
 func (kc *KafkaConsumer) Delete() error {

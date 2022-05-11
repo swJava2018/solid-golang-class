@@ -40,7 +40,8 @@ type PipelineCfg struct {
 }
 
 type ProcessorCfg struct {
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+	Name   string                 `json:"name,omitempty" yaml:"name,omitempty"`
+	Config map[string]interface{} `json:"config,omitempty" yaml:"config,omitempty"`
 }
 
 // NewConfig creates an instance of Config from command-line args and/or env vars

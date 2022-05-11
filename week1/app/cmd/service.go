@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"event-data-pipeline/cmd/pipeline"
+	"event-data-pipeline/cmd/event_data"
 	"event-data-pipeline/pkg/config"
 	"event-data-pipeline/pkg/logger"
 	"log"
@@ -22,7 +22,7 @@ func Run(cfg config.Config) {
 	go GarbageCollector()
 
 	// EventDataPipeline 타입의 인스턴스를 생성합니다.
-	edp, err := pipeline.NewEventDataPipeline(cfg)
+	edp, err := event_data.NewEventDataPipeline(cfg)
 
 	// 파이프라인 인스턴스 생성에 실패할 경우
 	// 프로그램 동작을 멈춥니다.

@@ -3,6 +3,7 @@ package storages_providers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"event-data-pipeline/pkg/concur"
 	"event-data-pipeline/pkg/fs"
 	"event-data-pipeline/pkg/logger"
@@ -68,49 +69,50 @@ func NewFilesystemClient(config jsonObj) StorageProvider {
 	return fc
 }
 
-func (f *FilesystemClient) Write(data interface{}) {
-	if data != nil {
+func (f *FilesystemClient) Write(payload interface{}) (int, error) {
+	if payload != nil {
+		job, ok := payload.(concur.Job)
+		if !ok {
+			return 0, errors.New("failed to switch data to Job")
+		}
 		f.mu.Lock()
-		f.file = fs.NewFile(key, path, data)
-		f.count += 1
-		f.mu.Unlock()
-		go f.commit()
-
-	}
-}
-
-func (f *FilesystemClient) commit() (int, error) {
-	ctx := context.Background()
-	retry := 0
-
-	for {
-		startWait := time.Now()
-		f.rateLimiter.Wait(ctx)
-		logger.Debugf("rate limited for %f seconds", time.Since(startWait).Seconds())
-		f.mu.Lock()
-		file := f.file
-
-		//TODO:: 리트라이 리밋 설정값으로부터 가져올것.
-		limit := 1
+		// Write 메소드가 리턴 할 때 Unlock
 		defer f.mu.Unlock()
+		f.file = fs.NewFile(job.DocID, job.Index, job.Body)
+		f.count += 1
 
-		defer func() {
-			if err := recover(); err != nil {
-				logger.Println("Write to file failed:", err)
+		ctx := context.Background()
+		retry := 0
+
+		for {
+			startWait := time.Now()
+			f.rateLimiter.Wait(ctx)
+			logger.Debugf("rate limited for %f seconds", time.Since(startWait).Seconds())
+
+			//TODO:: 리트라이 리밋 설정값으로부터 가져올것.
+			limit := 1
+
+			defer func() {
+				if err := recover(); err != nil {
+					logger.Println("Write to file failed:", err)
+				}
+			}()
+
+			os.MkdirAll(fmt.Sprintf("%s/%s", f.RootDir, f.file.SubDir), 0775)
+			err := ioutil.WriteFile(fmt.Sprintf("%s/%s/%s", f.RootDir, f.file.SubDir, f.file.Name), f.file.Data, 0775)
+
+			// 성공적인 쓰기에 리턴.
+			if err == nil {
+				return len(f.file.Data), nil
 			}
-		}()
 
-		os.MkdirAll(fmt.Sprintf("%s/%s", f.RootDir, f.file.SubDir), 0775)
-		err := ioutil.WriteFile(fmt.Sprintf("%s/%s/%s", f.RootDir, file.SubDir, file.Name), file.Data, 0775)
-		if err == nil {
-			return len(file.Data), nil
+			retry++
+			if limit >= 0 && retry >= limit {
+				return 0, err
+			}
+			//TODO:: 딜레이 설정 값으로부터 가져올 것.
+			time.Sleep(time.Duration(5) * time.Second)
 		}
-
-		retry++
-		if limit >= 0 && retry >= limit {
-			return 0, err
-		}
-		//TODO:: 딜레이 설정 값으로부터 가져올 것.
-		time.Sleep(time.Duration(5) * time.Second)
 	}
+	return 0, errors.New("payload is nil")
 }

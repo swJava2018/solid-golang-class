@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Task func(interface{})
+type Task func(interface{}) (int, error)
 
 type WorkerPool struct {
 	ID     string

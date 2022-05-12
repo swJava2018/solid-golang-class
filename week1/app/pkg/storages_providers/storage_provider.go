@@ -11,7 +11,7 @@ type (
 	jsonArr = []interface{}
 )
 type StorageProvider interface {
-	Write(key string, path string, data []byte) (int, error)
+	Write(payload interface{}) (int, error)
 }
 
 type StorageProviderFactory func(config jsonObj) StorageProvider

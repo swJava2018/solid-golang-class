@@ -1,9 +1,9 @@
 package concur
 
 type Job struct {
-	index string
-	docID string
-	body  []byte
+	Index string
+	DocID string
+	Body  []byte
 }
 
 func NewJob(key string, path string, data []byte) *Job {
@@ -14,8 +14,8 @@ func NewJob(key string, path string, data []byte) *Job {
 		return nil
 	}
 	return &Job{
-		index: key,
-		docID: path,
-		body:  data,
+		Index: key,
+		DocID: path,
+		Body:  data,
 	}
 }

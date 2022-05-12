@@ -1,12 +1,11 @@
 package payloads
 
 import (
-	"event-data-pipeline/pkg/pipelines"
 	"sync"
 )
 
 var (
-	_ pipelines.Payload = (*pageviewPayload)(nil)
+	_ Payload = (*pageviewPayload)(nil)
 
 	pageviewPayloadPool = sync.Pool{
 		New: func() interface{} { return new(pageviewPayload) },
@@ -20,7 +19,7 @@ type pageviewPayload struct {
 }
 
 // Clone implements pipeline.Payload.
-func (p *pageviewPayload) Clone() pipelines.Payload {
+func (p *pageviewPayload) Clone() Payload {
 	newP := pageviewPayloadPool.Get().(*pageviewPayload)
 	newP.viewtime = p.viewtime
 	newP.userid = p.userid

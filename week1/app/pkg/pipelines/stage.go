@@ -1,6 +1,9 @@
 package pipelines
 
-import "context"
+import (
+	"context"
+	"event-data-pipeline/pkg/payloads"
+)
 
 // StageRunner is implemented by types that can be strung together to form a
 // multi-stage pipeline.
@@ -24,10 +27,10 @@ type StageParams interface {
 	StageIndex() int
 
 	// Input returns a channel for reading the input payloads for a stage.
-	Input() <-chan Payload
+	Input() <-chan payloads.Payload
 
 	// Output returns a channel for writing the output payloads for a stage.
-	Output() chan<- Payload
+	Output() chan<- payloads.Payload
 
 	// Error returns a channel for writing errors that were encountered by
 	// a stage while processing payloads.

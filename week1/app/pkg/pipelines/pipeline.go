@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	"event-data-pipeline/pkg/payloads"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
@@ -38,10 +39,10 @@ func (p *Pipeline) Process(ctx context.Context, source Source, sink Sink) error 
 	// and the output sink. The output of the i_th stage is used as an input
 	// for the i+1_th stage. We need to allocate one extra channel than the
 	// number of stages so we can also wire the source/sink.
-	stageCh := make([]chan Payload, len(p.stages)+1)
+	stageCh := make([]chan payloads.Payload, len(p.stages)+1)
 	errCh := make(chan error, len(p.stages)+2)
 	for i := 0; i < len(stageCh); i++ {
-		stageCh[i] = make(chan Payload)
+		stageCh[i] = make(chan payloads.Payload)
 	}
 
 	// Start a worker for each stage
@@ -106,7 +107,7 @@ type Payload interface {
 // sourceWorker implements a worker that reads Payload instances from a Source
 // and pushes them to an output channel that is used as input for the first
 // stage of the pipeline.
-func sourceWorker(ctx context.Context, source Source, outCh chan<- Payload, errCh chan<- error) {
+func sourceWorker(ctx context.Context, source Source, outCh chan<- payloads.Payload, errCh chan<- error) {
 	for source.Next(ctx) {
 		payload := source.Payload()
 		select {
@@ -127,7 +128,7 @@ func sourceWorker(ctx context.Context, source Source, outCh chan<- Payload, errC
 // sinkWorker implements a worker that reads Payload instances from an input
 // channel (the output of the last pipeline stage) and passes them to the
 // provided sink.
-func sinkWorker(ctx context.Context, sink Sink, inCh <-chan Payload, errCh chan<- error) {
+func sinkWorker(ctx context.Context, sink Sink, inCh <-chan payloads.Payload, errCh chan<- error) {
 	for {
 		select {
 		case payload, ok := <-inCh:

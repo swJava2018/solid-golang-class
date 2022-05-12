@@ -2,6 +2,7 @@ package processors
 
 import (
 	"context"
+	"event-data-pipeline/pkg/payloads"
 )
 
 func init() {
@@ -16,7 +17,7 @@ func NewNoopProcessor(config jsonObj) Processor {
 type Noop struct {
 }
 
-func (b *Noop) Process(ctx context.Context, p Payload) (Payload, error) {
+func (b *Noop) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
 
 	return p, nil
 }

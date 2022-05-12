@@ -1,6 +1,9 @@
 package pipelines
 
-import "context"
+import (
+	"context"
+	"event-data-pipeline/pkg/payloads"
+)
 
 type Source interface {
 	// Next fetches the next payload from the source. If no more items are
@@ -8,7 +11,7 @@ type Source interface {
 	Next(context.Context) bool
 
 	// Payload returns the next payload to be processed.
-	Payload() Payload
+	Payload() payloads.Payload
 
 	// Error return the last error observed by the source.
 	Error() error

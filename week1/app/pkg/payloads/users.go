@@ -1,13 +1,12 @@
 package payloads
 
 import (
-	"event-data-pipeline/pkg/pipelines"
 	"sync"
 	"time"
 )
 
 var (
-	_ pipelines.Payload = (*usersPayload)(nil)
+	_ Payload = (*usersPayload)(nil)
 
 	usersPayloadPool = sync.Pool{
 		New: func() interface{} { return new(usersPayload) },
@@ -22,7 +21,7 @@ type usersPayload struct {
 }
 
 // Clone implements pipeline.Payload.
-func (p *usersPayload) Clone() pipelines.Payload {
+func (p *usersPayload) Clone() Payload {
 	newP := usersPayloadPool.Get().(*usersPayload)
 
 	return newP

@@ -105,12 +105,9 @@ func (e *EventDataPipeline) Run() error {
 				return err
 			}
 		}
-
+		e.p.Process(&wg, ctx, consumer.(pipelines.Source), nil)
 	}
-
-	//Run Process
-	e.p.Process(ctx, nil, nil)
-
+	wg.Wait()
 	return nil
 }
 

@@ -4,9 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"event-data-pipeline/pkg/logger"
+	"event-data-pipeline/pkg/payloads"
+	"event-data-pipeline/pkg/pipelines"
 
 	"event-data-pipeline/pkg/kafka"
 )
+
+// compile type assertion check
+var _ pipelines.Source = new(KafkaConsumerClient)
 
 // register kafka consumer client to factory
 func init() {
@@ -66,4 +71,18 @@ func (kc *KafkaConsumerClient) Consume(ctx context.Context, stream chan interfac
 	kc.kafkaConsumer.Read(ctx, stream, errc, shutdown)
 
 	return err
+}
+
+func (kc *KafkaConsumerClient) Next(context.Context) bool {
+	return true
+}
+
+// Payload returns the next payload to be processed.
+func (kc *KafkaConsumerClient) Payload() payloads.Payload {
+	return &payloads.PageviewPayload{}
+}
+
+// Error return the last error observed by the source.
+func (kc *KafkaConsumerClient) Error() error {
+	return nil
 }

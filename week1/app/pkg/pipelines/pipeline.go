@@ -31,8 +31,7 @@ func New(stages ...StageRunner) *Pipeline {
 //  - the supplied context expires
 //
 // It is safe to call Process concurrently with different sources and sinks.
-func (p *Pipeline) Process(ctx context.Context, source Source, sink Sink) error {
-	var wg sync.WaitGroup
+func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Source, sink Sink) error {
 	pCtx, ctxCancelFn := context.WithCancel(ctx)
 
 	// Allocate channels for wiring together the source, the pipeline stages

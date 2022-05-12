@@ -5,22 +5,22 @@ import (
 )
 
 var (
-	_ Payload = (*pageviewPayload)(nil)
+	_ Payload = (*PageviewPayload)(nil)
 
 	pageviewPayloadPool = sync.Pool{
-		New: func() interface{} { return new(pageviewPayload) },
+		New: func() interface{} { return new(PageviewPayload) },
 	}
 )
 
-type pageviewPayload struct {
+type PageviewPayload struct {
 	viewtime int
 	userid   string
 	pageid   string
 }
 
 // Clone implements pipeline.Payload.
-func (p *pageviewPayload) Clone() Payload {
-	newP := pageviewPayloadPool.Get().(*pageviewPayload)
+func (p *PageviewPayload) Clone() Payload {
+	newP := pageviewPayloadPool.Get().(*PageviewPayload)
 	newP.viewtime = p.viewtime
 	newP.userid = p.userid
 	newP.pageid = p.pageid
@@ -28,7 +28,7 @@ func (p *pageviewPayload) Clone() Payload {
 }
 
 // MarkAsProcessed implements pipeline.Payload
-func (p *pageviewPayload) MarkAsProcessed() {
+func (p *PageviewPayload) MarkAsProcessed() {
 	p.viewtime = 0
 	p.userid = ""
 	p.pageid = ""

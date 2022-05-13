@@ -10,8 +10,10 @@ type UsersProcessor struct {
 }
 
 func NewUsersProcessor() Processor {
-
-	return &UsersProcessor{}
+	tsp := NewTimeStampProcessor().(*TimeStampProcessor)
+	return &UsersProcessor{
+		*tsp,
+	}
 }
 
 func (b *UsersProcessor) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {

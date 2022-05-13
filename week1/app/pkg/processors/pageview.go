@@ -10,13 +10,14 @@ type PageViewProcessor struct {
 }
 
 func NewPageViewProcessor() Processor {
-
+	tsp := NewTimeStampProcessor().(*TimeStampProcessor)
 	return &PageViewProcessor{
-		TimeStampProcessor{},
+		*tsp,
 	}
 }
 
 func (pv *PageViewProcessor) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
+	//
 	pv.TimeStampProcessor.Process(ctx, p)
 	return p, nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"event-data-pipeline/pkg/logger"
-	"event-data-pipeline/pkg/pipelines"
 	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -34,6 +33,8 @@ type KafkaConsumer struct {
 
 	//partitions response
 	partitions *PartitionsResponse
+
+	stream chan interface{}
 }
 
 func NewKafkaConsumer(topic string, config jsonObj) *KafkaConsumer {
@@ -90,21 +91,17 @@ func (kc *KafkaConsumer) GetPartitions() error {
 	return nil
 }
 
-// TODO: READ 에서 인스턴스를 복사하고 어싸인 파티션을 할 것이 아님.
-func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) error {
-
-	// loop through partitions
+func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}) error {
+	// 파티션 별로 데이터를 읽어오는 고루틴 생성
 	for _, p := range kc.partitions.Partitions {
-
 		// Copy outer KafkaConsumer
 		ckc := kc.Copy()
 		// Instantiate inner kafka.Consumer
 		ckc.Create()
 		// Assign partition to the consumer
 		ckc.AssignPartition(int(p))
-
 		// spin up go routine per partition
-		ckc.Poll(stream, errc)
+		go ckc.Poll(ctx, stream)
 	}
 	return nil
 }
@@ -131,55 +128,28 @@ func (kc *KafkaConsumer) AssignPartition(partition int) error {
 	return err
 }
 
-//delete kafkaClient instance
-func (kc *KafkaConsumer) Poll(stream chan<- interface{}, errc chan<- error) {
-
-	//Next
-	//Payload
-	//Error
+func (kc *KafkaConsumer) Poll(ctx context.Context, stream chan interface{}) {
 	for {
-		var message []byte
-		var err error
-		ev := kc.kafkaConsumer.Poll(100)
-		switch e := ev.(type) {
-		case *kafka.Message:
-			message, err = json.Marshal(e)
-			if err != nil {
-				logger.Errorf(e.String())
-				errc <- err
-				continue
+		select {
+		case <-ctx.Done():
+		default:
+			var message []byte
+			var err error
+			ev := kc.kafkaConsumer.Poll(100)
+			switch e := ev.(type) {
+			case *kafka.Message:
+				message, err = json.Marshal(e)
+				if err != nil {
+					logger.Errorf(e.String())
+					continue
+				}
+				stream <- message
+				logger.Debugf("Message on p[%v]: %v", e.TopicPartition.Partition, string(message))
+			case kafka.Error:
+				logger.Errorf("Error: %v: %v", e.Code(), e)
+			case kafka.PartitionEOF:
+				logger.Debugf("[PartitionEOF][Consumer: %s][Topic: %v][Partition: %v][Offset: %d][Message: %v]", kc.kafkaConsumer.String(), *e.Topic, e.Partition, e.Offset, fmt.Sprintf("\"%s\"", e.Error.Error()))
 			}
-			// write message to the stream
-			stream <- message
-			logger.Debugf("Message on p[%v]: %v", e.TopicPartition.Partition, string(message))
-		case kafka.Error:
-			//TODO: check switch type
-			errc <- ev.(error)
-			logger.Errorf("Error: %v: %v", e.Code(), e)
-		case kafka.PartitionEOF:
-			logger.Debugf("[PartitionEOF][Consumer: %s][Topic: %v][Partition: %v][Offset: %d][Message: %v]", kc.kafkaConsumer.String(), *e.Topic, e.Partition, e.Offset, fmt.Sprintf("\"%s\"", e.Error.Error()))
 		}
 	}
-}
-
-// Check if Next Payload exists
-func (kc *KafkaConsumer) Next(context.Context) bool {
-	logger.Debugf("kafka consumer next")
-	return true
-
-}
-
-// Get Payload
-func (kc *KafkaConsumer) Payload() pipelines.Payload {
-	logger.Debugf("kafka consumer payload")
-
-	return nil
-
-}
-
-//delete kafkaClient instance
-func (kc *KafkaConsumer) Delete() error {
-
-	return nil
-
 }

@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
 	"sync"
 
@@ -45,21 +46,21 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Sourc
 	}
 
 	// Start a worker for each stage
-	for i := 0; i < len(p.stages); i++ {
-		wg.Add(1)
-		go func(stageIndex int) {
-			p.stages[stageIndex].Run(pCtx, &workerParams{
-				stage: stageIndex,
-				inCh:  stageCh[stageIndex],
-				outCh: stageCh[stageIndex+1],
-				errCh: errCh,
-			})
+	// for i := 0; i < len(p.stages); i++ {
+	// 	wg.Add(1)
+	// 	go func(stageIndex int) {
+	// 		p.stages[stageIndex].Run(pCtx, &workerParams{
+	// 			stage: stageIndex,
+	// 			inCh:  stageCh[stageIndex],
+	// 			outCh: stageCh[stageIndex+1],
+	// 			errCh: errCh,
+	// 		})
 
-			// Signal next stage that no more data is available.
-			close(stageCh[stageIndex+1])
-			wg.Done()
-		}(i)
-	}
+	// 		// Signal next stage that no more data is available.
+	// 		close(stageCh[stageIndex+1])
+	// 		wg.Done()
+	// 	}(i)
+	// }
 
 	// Start source and sink workers
 	wg.Add(1)
@@ -72,19 +73,21 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Sourc
 		wg.Done()
 	}()
 
-	for _, s := range sinks {
-		wg.Add(1)
-		go func() {
-			sinkWorker(pCtx, s, stageCh[len(stageCh)-1], errCh)
-			wg.Done()
-		}()
-	}
+	// for _, s := range sinks {
+	// 	wg.Add(1)
+	// 	go func() {
+	// 		sinkWorker(pCtx, s, stageCh[len(stageCh)-1], errCh)
+	// 		wg.Done()
+	// 	}()
+	// }
 
 	// Close the error channel once all workers exit.
 	go func() {
+		logger.Debugf("start waiting")
 		wg.Wait()
 		close(errCh)
 		ctxCancelFn()
+		logger.Debugf("Done")
 	}()
 
 	// Collect any emitted errors and wrap them in a multi-error.
@@ -111,16 +114,20 @@ type Payload interface {
 // and pushes them to an output channel that is used as input for the first
 // stage of the pipeline.
 func sourceWorker(ctx context.Context, source Source, outCh chan<- payloads.Payload, errCh chan<- error) {
-	for source.Next(ctx) {
-		payload := source.Payload()
+out:
+	for {
 		select {
-		case outCh <- payload:
 		case <-ctx.Done():
-			// Asked to shutdown
-			return
+			break out
+		default:
+			if source.Next(ctx) {
+				payload := source.Payload()
+				outCh <- payload
+			}
+
 		}
 	}
-
+	logger.Debugf("out of source.Next loop")
 	// Check for errors
 	if err := source.Error(); err != nil {
 		wrappedErr := xerrors.Errorf("pipeline source: %w", err)

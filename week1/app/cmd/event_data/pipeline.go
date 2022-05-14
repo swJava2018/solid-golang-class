@@ -119,6 +119,15 @@ func (e *EventDataPipeline) Run() error {
 		// 파이프라인 초기화
 		e.p = pipelines.New(stageRunners...)
 
+		// 컨슈머 읽기 채널
+		stream := make(chan interface{})
+
+		// 컨슈머 에러 채널
+		errCh := make(chan error)
+
+		// 컨슈머 읽기 고루틴
+		go consumer.Consume(ctx, stream, errCh)
+		// 프로세서
 		e.p.Process(&wg, ctx, consumer.(pipelines.Source), nil)
 	}
 	wg.Wait()

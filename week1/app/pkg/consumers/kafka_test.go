@@ -70,7 +70,7 @@ func TestConsumerKafkaConsume(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		consumer.Consume(context.TODO(), nil, nil, nil)
+		consumer.Consume(context.TODO(), nil, nil)
 
 	}
 

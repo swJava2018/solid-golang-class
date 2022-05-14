@@ -31,7 +31,7 @@ func New(stages ...StageRunner) *Pipeline {
 //  - the supplied context expires
 //
 // It is safe to call Process concurrently with different sources and sinks.
-func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Source, sink Sink) error {
+func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Source, sinks []Sink) error {
 	pCtx, ctxCancelFn := context.WithCancel(ctx)
 
 	// Allocate channels for wiring together the source, the pipeline stages
@@ -62,8 +62,9 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Sourc
 	}
 
 	// Start source and sink workers
-	wg.Add(2)
+	wg.Add(1)
 	go func() {
+
 		sourceWorker(pCtx, source, stageCh[0], errCh)
 
 		// Signal next stage that no more data is available.
@@ -71,10 +72,13 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Sourc
 		wg.Done()
 	}()
 
-	go func() {
-		sinkWorker(pCtx, sink, stageCh[len(stageCh)-1], errCh)
-		wg.Done()
-	}()
+	for _, s := range sinks {
+		wg.Add(1)
+		go func() {
+			sinkWorker(pCtx, s, stageCh[len(stageCh)-1], errCh)
+			wg.Done()
+		}()
+	}
 
 	// Close the error channel once all workers exit.
 	go func() {

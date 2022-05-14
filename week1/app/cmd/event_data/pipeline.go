@@ -87,14 +87,24 @@ func (e *EventDataPipeline) Run() error {
 
 		// 컨슈머로 부터 데이터를 받아 처리하는 0개 이상의 프로세서 슬라이스 초기화
 		proccers := make([]processors.Processor, len(cfg.Processors))
-		for _, p := range cfg.Processors {
+		for i, p := range cfg.Processors {
 			processor, err := processors.CreateProcessor(p.Name, p.Config)
 			if err != nil {
 				return err
 			}
 			// 스테이지 러너에 생성된 프로세서를 등록
-			proccers = append(proccers, processor)
+			proccers[i] = processor
 		}
+
+		// 스테이지 러너 슬라이스 초기화
+		stageRunners := make([]pipelines.StageRunner, len(proccers))
+
+		// TODO: 설정 값에 따라 FIFO, WorkerPools 등 처리 방법을 선택
+		for i, p := range proccers {
+			fifo := pipelines.FIFO(p)
+			stageRunners[i] = fifo
+		}
+
 		// 스토리지 프로바이더 생성
 		storageProviders := make([]storages_providers.StorageProvider, len(cfg.Storages))
 		for i, s := range cfg.Storages {
@@ -105,6 +115,10 @@ func (e *EventDataPipeline) Run() error {
 				return err
 			}
 		}
+
+		// 파이프라인 초기화
+		e.p = pipelines.New(stageRunners...)
+
 		e.p.Process(&wg, ctx, consumer.(pipelines.Source), nil)
 	}
 	wg.Wait()

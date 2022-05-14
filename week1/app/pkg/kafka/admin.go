@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"encoding/json"
+	"errors"
 	"event-data-pipeline/pkg/logger"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -18,11 +19,17 @@ type AdminClient struct {
 	partitions []kafka.PartitionMetadata
 }
 
-func NewAdminClient(topic string, consumer *kafka.Consumer) *AdminClient {
+func NewAdminClient(topic string, consumer *kafka.Consumer) (*AdminClient, error) {
+	if topic == "" {
+		return nil, errors.New("topic is empty")
+	}
+	if consumer == nil {
+		return nil, errors.New("consumer is nil")
+	}
 	return &AdminClient{
 		topic:    topic,
 		consumer: consumer,
-	}
+	}, nil
 }
 
 func (ac *AdminClient) GetPartitions() (*PartitionsResponse, error) {

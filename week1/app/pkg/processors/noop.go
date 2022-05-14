@@ -2,6 +2,7 @@ package processors
 
 import (
 	"context"
+	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
 )
 
@@ -20,6 +21,7 @@ func NewNoopProcessor(config jsonObj) Processor {
 
 // Processor return Payload as it is
 func (n *NoopProcessor) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
+	logger.Debugf("Processing %v", p)
 	n.Validate(ctx, p)
 	return p, nil
 }

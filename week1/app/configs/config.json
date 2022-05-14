@@ -7,7 +7,7 @@
                 "retry_delay": 5,
                 "record_check_frequency": 15,
                 "client_name": "default",
-                "topic": "event",
+                "topic": "users",
                 "consumer_options": {
                     "bootstrap.servers": "localhost:9092",
                     "group.id": "01",

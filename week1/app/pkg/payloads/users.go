@@ -6,14 +6,14 @@ import (
 )
 
 var (
-	_ Payload = (*usersPayload)(nil)
+	_ Payload = (*UsersPayload)(nil)
 
 	usersPayloadPool = sync.Pool{
-		New: func() interface{} { return new(usersPayload) },
+		New: func() interface{} { return new(UsersPayload) },
 	}
 )
 
-type usersPayload struct {
+type UsersPayload struct {
 	userid       string
 	regionid     string
 	gender       string
@@ -21,14 +21,14 @@ type usersPayload struct {
 }
 
 // Clone implements pipeline.Payload.
-func (p *usersPayload) Clone() Payload {
-	newP := usersPayloadPool.Get().(*usersPayload)
+func (p *UsersPayload) Clone() Payload {
+	newP := usersPayloadPool.Get().(*UsersPayload)
 
 	return newP
 }
 
 // MarkAsProcessed implements pipeline.Payload
-func (p *usersPayload) MarkAsProcessed() {
+func (p *UsersPayload) MarkAsProcessed() {
 	p.userid = ""
 	p.gender = ""
 	p.regionid = ""

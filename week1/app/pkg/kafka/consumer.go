@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"event-data-pipeline/pkg/logger"
+	"event-data-pipeline/pkg/pipelines"
 	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -70,8 +71,13 @@ func (kc *KafkaConsumer) Create() error {
 
 }
 
-func (kc *KafkaConsumer) CreateAdmin() {
-	kc.adminClient = NewAdminClient(kc.topic, kc.kafkaConsumer)
+func (kc *KafkaConsumer) CreateAdmin() error {
+	var err error
+	kc.adminClient, err = NewAdminClient(kc.topic, kc.kafkaConsumer)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (kc *KafkaConsumer) GetPartitions() error {
@@ -84,6 +90,7 @@ func (kc *KafkaConsumer) GetPartitions() error {
 	return nil
 }
 
+// TODO: READ 에서 인스턴스를 복사하고 어싸인 파티션을 할 것이 아님.
 func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) error {
 
 	// loop through partitions
@@ -157,17 +164,18 @@ func (kc *KafkaConsumer) Poll(stream chan<- interface{}, errc chan<- error) {
 
 // Check if Next Payload exists
 func (kc *KafkaConsumer) Next(context.Context) bool {
-
-	return false
+	logger.Debugf("kafka consumer next")
+	return true
 
 }
 
 // Get Payload
-// func (kc *KafkaConsumer) Payload() pipelines.Payload {
+func (kc *KafkaConsumer) Payload() pipelines.Payload {
+	logger.Debugf("kafka consumer payload")
 
-// 	return false
+	return nil
 
-// }
+}
 
 //delete kafkaClient instance
 func (kc *KafkaConsumer) Delete() error {

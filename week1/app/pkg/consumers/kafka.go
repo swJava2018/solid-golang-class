@@ -6,7 +6,6 @@ import (
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
 	"event-data-pipeline/pkg/pipelines"
-	"time"
 
 	"event-data-pipeline/pkg/kafka"
 )
@@ -123,7 +122,7 @@ func (kc *KafkaConsumerClient) GetPartitions() error {
 // 다음 Payload 가 있는지 확인
 func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 	select {
-	case p := <-kc.stream:
+	case p := <-kc.kafkaConsumer.Stream:
 		logger.Debugf("Yes Next Payload")
 		payload, ok := p.(*payloads.UsersPayload)
 		if !ok {
@@ -131,10 +130,6 @@ func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 		}
 		kc.payload = payload
 		return true
-	default:
-		logger.Debugf("No Next Payload")
-		time.Sleep(1000 * time.Millisecond)
-		return false
 	}
 }
 

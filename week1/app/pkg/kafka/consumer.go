@@ -34,7 +34,7 @@ type KafkaConsumer struct {
 	//partitions response
 	partitions *PartitionsResponse
 
-	stream chan interface{}
+	Stream chan interface{}
 }
 
 func NewKafkaConsumer(topic string, config jsonObj) *KafkaConsumer {
@@ -92,6 +92,7 @@ func (kc *KafkaConsumer) GetPartitions() error {
 }
 
 func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}) error {
+	kc.Stream = stream
 	// 파티션 별로 데이터를 읽어오는 고루틴 생성
 	for _, p := range kc.partitions.Partitions {
 		// Copy outer KafkaConsumer
@@ -129,21 +130,26 @@ func (kc *KafkaConsumer) AssignPartition(partition int) error {
 }
 
 func (kc *KafkaConsumer) Poll(ctx context.Context, stream chan interface{}) {
+	cast := func(msg *kafka.Message) map[string]interface{} {
+		var record = make(map[string]interface{})
+		record["key"] = string(msg.Key)
+		record["offset"] = float64(msg.TopicPartition.Offset)
+		record["partition"] = float64(msg.TopicPartition.Partition)
+
+		return record
+	}
 	for {
 		select {
 		case <-ctx.Done():
 		default:
 			var message []byte
-			var err error
 			ev := kc.kafkaConsumer.Poll(100)
 			switch e := ev.(type) {
 			case *kafka.Message:
-				message, err = json.Marshal(e)
-				if err != nil {
-					logger.Errorf(e.String())
-					continue
-				}
-				stream <- message
+				record := cast(e)
+				records := make([]interface{}, 1)
+				records[0] = record
+				stream <- records[0]
 				logger.Debugf("Message on p[%v]: %v", e.TopicPartition.Partition, string(message))
 			case kafka.Error:
 				logger.Errorf("Error: %v: %v", e.Code(), e)

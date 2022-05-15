@@ -73,13 +73,13 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Sourc
 		wg.Done()
 	}()
 
-	// for _, s := range sinks {
-	// 	wg.Add(1)
-	// 	go func() {
-	// 		sinkWorker(pCtx, s, stageCh[len(stageCh)-1], errCh)
-	// 		wg.Done()
-	// 	}()
-	// }
+	for _, s := range sinks {
+		wg.Add(1)
+		go func(s Sink) {
+			sinkWorker(pCtx, s, stageCh[len(stageCh)-1], errCh)
+			wg.Done()
+		}(s)
+	}
 
 	// Close the error channel once all workers exit.
 	go func() {

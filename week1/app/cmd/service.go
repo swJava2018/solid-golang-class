@@ -3,7 +3,6 @@ package cmd
 import (
 	"event-data-pipeline/cmd/event_data"
 	"event-data-pipeline/pkg/config"
-	"event-data-pipeline/pkg/logger"
 	"log"
 	_ "net/http/pprof"
 	"runtime/debug"
@@ -44,8 +43,7 @@ func Run(cfg config.Config) {
 func GarbageCollector() {
 	gcTimer := time.NewTicker(1 * time.Second)
 
-	for t := range gcTimer.C {
-		logger.Debugf(t.String())
+	for _ = range gcTimer.C {
 		debug.FreeOSMemory()
 	}
 }

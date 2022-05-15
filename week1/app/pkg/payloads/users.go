@@ -2,7 +2,6 @@ package payloads
 
 import (
 	"sync"
-	"time"
 )
 
 var (
@@ -14,10 +13,9 @@ var (
 )
 
 type UsersPayload struct {
-	userid       string
-	regionid     string
-	gender       string
-	registertime time.Time
+	Userid    string `json:"userid,omitempty"`
+	Offset    int    `json:"offset,omitempty"`
+	Partition int    `json:"partition,omitempty"`
 }
 
 // Clone implements pipeline.Payload.
@@ -29,9 +27,6 @@ func (p *UsersPayload) Clone() Payload {
 
 // MarkAsProcessed implements pipeline.Payload
 func (p *UsersPayload) MarkAsProcessed() {
-	p.userid = ""
-	p.gender = ""
-	p.regionid = ""
-	p.registertime = time.Time{}
+	p.Userid = ""
 	usersPayloadPool.Put(p)
 }

@@ -121,16 +121,23 @@ func (kc *KafkaConsumerClient) GetPartitions() error {
 // Source 인터페이스 구현
 // 다음 Payload 가 있는지 확인
 func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
-	select {
-	case p := <-kc.kafkaConsumer.Stream:
-		logger.Debugf("Yes Next Payload")
-		payload, ok := p.(*payloads.UsersPayload)
-		if !ok {
-			logger.Errorf("failed to switch type to UsersPayload")
-		}
-		kc.payload = payload
-		return true
+
+	//스트림으로부터 읽어오기
+	p := <-kc.kafkaConsumer.Stream
+
+	data, err := json.Marshal(p)
+	if err != nil {
+		logger.Errorf("failed to marshall the stream data")
+		return false
 	}
+	var userPayload payloads.UsersPayload
+	err = json.Unmarshal(data, &userPayload)
+	if err != nil {
+		logger.Errorf("failed to load the stream dadta to UserPayload")
+		return false
+	}
+	kc.payload = &userPayload
+	return true
 }
 
 // Source 인터페이스 구현

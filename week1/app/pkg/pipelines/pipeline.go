@@ -46,21 +46,21 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Sourc
 	}
 
 	// Start a worker for each stage
-	// for i := 0; i < len(p.stages); i++ {
-	// 	wg.Add(1)
-	// 	go func(stageIndex int) {
-	// 		p.stages[stageIndex].Run(pCtx, &workerParams{
-	// 			stage: stageIndex,
-	// 			inCh:  stageCh[stageIndex],
-	// 			outCh: stageCh[stageIndex+1],
-	// 			errCh: errCh,
-	// 		})
+	for i := 0; i < len(p.stages); i++ {
+		wg.Add(1)
+		go func(stageIndex int) {
+			p.stages[stageIndex].Run(pCtx, &workerParams{
+				stage: stageIndex,
+				inCh:  stageCh[stageIndex],
+				outCh: stageCh[stageIndex+1],
+				errCh: errCh,
+			})
 
-	// 		// Signal next stage that no more data is available.
-	// 		close(stageCh[stageIndex+1])
-	// 		wg.Done()
-	// 	}(i)
-	// }
+			// Signal next stage that no more data is available.
+			close(stageCh[stageIndex+1])
+			wg.Done()
+		}(i)
+	}
 
 	// Start source and sink workers
 	wg.Add(1)
@@ -146,7 +146,7 @@ func sinkWorker(ctx context.Context, sink Sink, inCh <-chan payloads.Payload, er
 				return
 			}
 
-			if err := sink.Consume(ctx, payload); err != nil {
+			if err := sink.Drain(ctx, payload); err != nil {
 				wrappedErr := xerrors.Errorf("pipeline sink: %w", err)
 				maybeEmitError(wrappedErr, errCh)
 				return

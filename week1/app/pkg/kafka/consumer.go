@@ -93,15 +93,15 @@ func (kc *KafkaConsumer) GetPartitions() error {
 
 func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}) error {
 	kc.Stream = stream
-	// 파티션 별로 데이터를 읽어오는 고루틴 생성
+	// 파티션 별로 카프카 컨슈머 생성
 	for _, p := range kc.partitions.Partitions {
-		// Copy outer KafkaConsumer
+		// KafkaConsumer 인스턴스 복사
 		ckc := kc.Copy()
-		// Instantiate inner kafka.Consumer
+		// KafkaConsumer 내부 실제 컨슈머 생성
 		ckc.Create()
-		// Assign partition to the consumer
+		// 데이터를 읽어오기 위한 파티션에 할당
 		ckc.AssignPartition(int(p))
-		// spin up go routine per partition
+		// 실제 데이터를 읽어오는 고루틴 생성
 		go ckc.Poll(ctx, stream)
 	}
 	return nil

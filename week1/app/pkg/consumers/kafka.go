@@ -13,6 +13,8 @@ import (
 
 // compile type assertion check
 var _ pipelines.Source = new(KafkaConsumerClient)
+var _ Consumer = new(KafkaConsumerClient)
+var _ ConsumerFactory = NewKafkaConsumerClient
 
 // register kafka consumer client to factory
 func init() {

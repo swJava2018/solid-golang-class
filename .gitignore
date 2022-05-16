@@ -1,3 +1,4 @@
 .vscode
 week*/.vscode
 week*/app/vendor
+week*/app/fs

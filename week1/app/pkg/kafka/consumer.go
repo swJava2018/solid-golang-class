@@ -139,8 +139,10 @@ func (kc *KafkaConsumer) Poll(ctx context.Context, stream chan interface{}) {
 		record["offset"] = float64(msg.TopicPartition.Offset)
 
 		record["key"] = string(msg.Key)
-		record["value"] = string(msg.Value)
 
+		var valObj map[string]interface{}
+		json.Unmarshal(msg.Value, &valObj)
+		record["value"] = valObj
 		record["timestamp"] = msg.Timestamp
 		return record
 	}

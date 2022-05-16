@@ -137,8 +137,7 @@ func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 			var kfkPayload payloads.KafkaPayload
 			err = json.Unmarshal(data, &kfkPayload)
 			if err != nil {
-				logger.Errorf("failed to load the stream dadta to UserPayload")
-				return false
+				logger.Errorf(err.Error())
 			}
 			kc.payload = &kfkPayload
 			return true

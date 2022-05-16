@@ -21,17 +21,26 @@ type KafkaPayload struct {
 	Key       string                 `json:"key,omitempty"`
 	Value     map[string]interface{} `json:"value,omitempty"`
 	Timestamp time.Time              `json:"timestamp,omitempty"`
+
+	Index string `json:"index,omitempty"`
+	DocID string `json:"doc_id,omitempty"`
+	Data  []byte `json:"data,omitempty"`
 }
 
 // Clone implements pipeline.Payload.
-func (p *KafkaPayload) Clone() Payload {
+func (kp *KafkaPayload) Clone() Payload {
 	newP := kafkaPayloadPool.Get().(*KafkaPayload)
 
 	return newP
 }
 
+// Out implements Payload
+func (kp *KafkaPayload) Out() (string, string, []byte) {
+	return kp.Index, kp.DocID, kp.Data
+}
+
 // MarkAsProcessed implements pipeline.Payload
 func (p *KafkaPayload) MarkAsProcessed() {
 
-	usersPayloadPool.Put(p)
+	kafkaPayloadPool.Put(p)
 }

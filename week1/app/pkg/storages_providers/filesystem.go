@@ -84,14 +84,13 @@ func NewFilesystemClient(config jsonObj) StorageProvider {
 
 func (f *FilesystemClient) Write(payload interface{}) (int, error) {
 	if payload != nil {
-		job, ok := payload.(concur.Job)
-		if !ok {
-			return 0, errors.New("failed to switch data to Job")
-		}
+
+		index, docID, data := payload.(payloads.Payload).Out()
+
 		f.mu.Lock()
 		// Write 메소드가 리턴 할 때 Unlock
 		defer f.mu.Unlock()
-		f.file = fs.NewFile(job.DocID, job.Index, job.Body)
+		f.file = fs.NewFile(index, docID, data)
 		f.count += 1
 
 		ctx := context.Background()

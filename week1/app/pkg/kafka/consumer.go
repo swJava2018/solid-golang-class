@@ -132,23 +132,27 @@ func (kc *KafkaConsumer) AssignPartition(partition int) error {
 func (kc *KafkaConsumer) Poll(ctx context.Context, stream chan interface{}) {
 	cast := func(msg *kafka.Message) map[string]interface{} {
 		var record = make(map[string]interface{})
-		record["userid"] = string(msg.Key)
-		record["offset"] = float64(msg.TopicPartition.Offset)
-		record["partition"] = float64(msg.TopicPartition.Partition)
 
+		// dereference to put plain string
+		record["topic"] = *msg.TopicPartition.Topic
+		record["partition"] = float64(msg.TopicPartition.Partition)
+		record["offset"] = float64(msg.TopicPartition.Offset)
+
+		record["key"] = string(msg.Key)
+		record["value"] = string(msg.Value)
+
+		record["timestamp"] = msg.Timestamp
 		return record
 	}
 	for {
 		select {
 		case <-ctx.Done():
 		default:
-			var message []byte
 			ev := kc.kafkaConsumer.Poll(100)
 			switch e := ev.(type) {
 			case *kafka.Message:
 				record := cast(e)
 				stream <- record
-				logger.Debugf("Message on p[%v]: %v", e.TopicPartition.Partition, string(message))
 			case kafka.Error:
 				logger.Errorf("Error: %v: %v", e.Code(), e)
 			case kafka.PartitionEOF:

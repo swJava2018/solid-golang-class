@@ -6,6 +6,7 @@ import (
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
 	"event-data-pipeline/pkg/pipelines"
+	"time"
 
 	"event-data-pipeline/pkg/kafka"
 )
@@ -123,21 +124,33 @@ func (kc *KafkaConsumerClient) GetPartitions() error {
 func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 
 	//스트림으로부터 읽어오기
-	p := <-kc.kafkaConsumer.Stream
+	for {
+		select {
+		// 스트림이 있을 때
+		case p := <-kc.kafkaConsumer.Stream:
+			data, err := json.Marshal(p)
+			if err != nil {
+				logger.Errorf("failed to marshall the stream data")
+				return false
+			}
+			var userPayload payloads.UsersPayload
+			err = json.Unmarshal(data, &userPayload)
+			if err != nil {
+				logger.Errorf("failed to load the stream dadta to UserPayload")
+				return false
+			}
+			kc.payload = &userPayload
+			return true
+		// Shutdown
+		case <-ctx.Done():
+			logger.Debugf("Context cancelled")
+		// 스트림이 없을 때 Sleep 후 다시 읽기 시도.
+		default:
+			logger.Debugf("No Next Stream. Sleeping for 2 seconds")
+			time.Sleep(2 * time.Second)
+		}
+	}
 
-	data, err := json.Marshal(p)
-	if err != nil {
-		logger.Errorf("failed to marshall the stream data")
-		return false
-	}
-	var userPayload payloads.UsersPayload
-	err = json.Unmarshal(data, &userPayload)
-	if err != nil {
-		logger.Errorf("failed to load the stream dadta to UserPayload")
-		return false
-	}
-	kc.payload = &userPayload
-	return true
 }
 
 // Source 인터페이스 구현

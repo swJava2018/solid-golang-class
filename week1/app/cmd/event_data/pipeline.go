@@ -127,8 +127,11 @@ func (e *EventDataPipeline) Run() error {
 
 		// 컨슈머 읽기 고루틴
 		go consumer.Consume(ctx, stream, errCh)
+
+		// 1.source, storag provider 인터페이스 통합.
+		// 2.process signature 변경 sink > storage provider
 		// 프로세서
-		e.p.Process(&wg, ctx, consumer.(pipelines.Source), nil)
+		e.p.Process(&wg, ctx, consumer.(pipelines.Source), storageProviders)
 	}
 	wg.Wait()
 	return nil

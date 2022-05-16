@@ -4,6 +4,8 @@ import (
 	"context"
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
+	"event-data-pipeline/pkg/storages_providers"
+
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
@@ -32,7 +34,7 @@ func New(stages ...StageRunner) *Pipeline {
 //  - the supplied context expires
 //
 // It is safe to call Process concurrently with different sources and sinks.
-func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Source, sinks []Sink) error {
+func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Source, storageProviders []storages_providers.StorageProvider) error {
 	pCtx, ctxCancelFn := context.WithCancel(ctx)
 
 	// Allocate channels for wiring together the source, the pipeline stages
@@ -73,10 +75,11 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Sourc
 		wg.Done()
 	}()
 
-	for _, s := range sinks {
+	for _, s := range storageProviders {
 		wg.Add(1)
-		go func(s Sink) {
-			sinkWorker(pCtx, s, stageCh[len(stageCh)-1], errCh)
+		go func(s storages_providers.StorageProvider) {
+			sink := s.(Sink)
+			sinkWorker(pCtx, sink, stageCh[len(stageCh)-1], errCh)
 			wg.Done()
 		}(s)
 	}

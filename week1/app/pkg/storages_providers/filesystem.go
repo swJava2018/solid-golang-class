@@ -8,7 +8,7 @@ import (
 	"event-data-pipeline/pkg/fs"
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
-	"event-data-pipeline/pkg/pipelines"
+
 	"event-data-pipeline/pkg/ratelimit"
 	"fmt"
 	"io/ioutil"
@@ -19,7 +19,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-var _ pipelines.Sink = new(FilesystemClient)
+// var _ pipelines.Sink = new(FilesystemClient)
 
 func init() {
 	Register("filesystem", NewFilesystemClient)

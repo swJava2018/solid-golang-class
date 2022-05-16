@@ -121,6 +121,7 @@ func (kc *KafkaConsumerClient) GetPartitions() error {
 
 // Source 인터페이스 구현
 // 다음 Payload 가 있는지 확인
+// 특정 페이로드 타입으로 변환
 func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 
 	//스트림으로부터 읽어오기
@@ -133,13 +134,13 @@ func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 				logger.Errorf("failed to marshall the stream data")
 				return false
 			}
-			var userPayload payloads.UsersPayload
-			err = json.Unmarshal(data, &userPayload)
+			var kfkPayload payloads.KafkaPayload
+			err = json.Unmarshal(data, &kfkPayload)
 			if err != nil {
 				logger.Errorf("failed to load the stream dadta to UserPayload")
 				return false
 			}
-			kc.payload = &userPayload
+			kc.payload = &kfkPayload
 			return true
 		// Shutdown
 		case <-ctx.Done():
@@ -154,7 +155,6 @@ func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 }
 
 // Source 인터페이스 구현
-// TODO: 설정 값에 따라 사용할 페이로드 타입을 결정 일단은 UsersPayload로 진행
 func (kc *KafkaConsumerClient) Payload() payloads.Payload {
 	return kc.payload
 }

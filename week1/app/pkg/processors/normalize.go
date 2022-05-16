@@ -6,7 +6,6 @@ import (
 	"event-data-pipeline/pkg/payloads"
 	"fmt"
 	"strconv"
-	"time"
 )
 
 var _ Processor = new(ProcessorFunc)
@@ -25,8 +24,7 @@ func NormalizeKafkaPayload(ctx context.Context, p payloads.Payload) (payloads.Pa
 	kfkPayload := p.(*payloads.KafkaPayload)
 
 	// 인덱스 생성
-	dt, _ := time.Parse(time.RFC3339, kfkPayload.Timestamp.String())
-	index := fmt.Sprintf("%s-%s", "event-data", dt.Format("01-02-2006"))
+	index := fmt.Sprintf("%s-%s", "event-data", kfkPayload.Timestamp.Format("01-02-2006"))
 	kfkPayload.Index = index
 
 	// 식별자 생성

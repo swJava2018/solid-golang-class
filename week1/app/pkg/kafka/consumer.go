@@ -141,7 +141,11 @@ func (kc *KafkaConsumer) Poll(ctx context.Context, stream chan interface{}) {
 		record["key"] = string(msg.Key)
 
 		var valObj map[string]interface{}
-		json.Unmarshal(msg.Value, &valObj)
+		logger.Debugf("%s", string(msg.Value))
+		err := json.Unmarshal(msg.Value, &valObj)
+		if err != nil {
+			logger.Errorf("error in casting value object: %v", err)
+		}
 		record["value"] = valObj
 		record["timestamp"] = msg.Timestamp
 		return record

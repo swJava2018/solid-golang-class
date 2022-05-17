@@ -9,13 +9,16 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
+var _ Consumer = new(KafkaConsumer)
+
 type Consumer interface {
 	Create() error
+	CreateAdmin() error
+	GetPartitions() error
+	Read(ctx context.Context, stream chan interface{}, errCh chan error) error
 	AssignPartition(partition int) error
-	Read(ctx context.Context, stream chan interface{}, errc chan error, shutdown chan bool) ([]byte, error)
-	CommitOffset(partition int, offset int) error
-	GetOffsetRange(partition int) (int, int, error)
-	GetCommittedOffset(partition int) (int, error)
+	Poll(ctx context.Context)
+	Stream() chan interface{}
 }
 
 type KafkaConsumer struct {
@@ -34,7 +37,14 @@ type KafkaConsumer struct {
 	//partitions response
 	partitions *PartitionsResponse
 
-	Stream chan interface{}
+	stream chan interface{}
+
+	errCh chan error
+}
+
+// Stream implements Consumer
+func (kc *KafkaConsumer) Stream() chan interface{} {
+	return kc.stream
 }
 
 func NewKafkaConsumer(topic string, config jsonObj) *KafkaConsumer {
@@ -91,8 +101,9 @@ func (kc *KafkaConsumer) GetPartitions() error {
 	return nil
 }
 
-func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}) error {
-	kc.Stream = stream
+func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}, errCh chan error) error {
+	kc.stream = stream
+	kc.errCh = errCh
 	// 파티션 별로 카프카 컨슈머 생성
 	for _, p := range kc.partitions.Partitions {
 		// KafkaConsumer 인스턴스 복사
@@ -102,7 +113,7 @@ func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}) erro
 		// 데이터를 읽어오기 위한 파티션에 할당
 		ckc.AssignPartition(int(p))
 		// 실제 데이터를 읽어오는 고루틴 생성
-		go ckc.Poll(ctx, stream)
+		go ckc.Poll(ctx)
 	}
 	return nil
 }
@@ -112,6 +123,8 @@ func (kc *KafkaConsumer) Copy() *KafkaConsumer {
 	return &KafkaConsumer{
 		topic:     kc.topic,
 		configMap: kc.configMap,
+		stream:    kc.stream,
+		errCh:     kc.errCh,
 	}
 }
 
@@ -129,7 +142,7 @@ func (kc *KafkaConsumer) AssignPartition(partition int) error {
 	return err
 }
 
-func (kc *KafkaConsumer) Poll(ctx context.Context, stream chan interface{}) {
+func (kc *KafkaConsumer) Poll(ctx context.Context) {
 	cast := func(msg *kafka.Message) map[string]interface{} {
 		var record = make(map[string]interface{})
 
@@ -141,7 +154,7 @@ func (kc *KafkaConsumer) Poll(ctx context.Context, stream chan interface{}) {
 		record["key"] = string(msg.Key)
 
 		var valObj map[string]interface{}
-		logger.Debugf("%s", string(msg.Value))
+
 		err := json.Unmarshal(msg.Value, &valObj)
 		if err != nil {
 			logger.Errorf("error in casting value object: %v", err)
@@ -153,15 +166,21 @@ func (kc *KafkaConsumer) Poll(ctx context.Context, stream chan interface{}) {
 	for {
 		select {
 		case <-ctx.Done():
+			logger.Debugf("shutting down consumer read")
+			return
 		default:
 			ev := kc.kafkaConsumer.Poll(100)
 			switch e := ev.(type) {
 			case *kafka.Message:
 				record := cast(e)
-				stream <- record
+				kc.stream <- record
+				data, _ := json.MarshalIndent(record, "", " ")
+				logger.Debugf("%s", string(data))
 			case kafka.Error:
+				kc.errCh <- e
 				logger.Errorf("Error: %v: %v", e.Code(), e)
 			case kafka.PartitionEOF:
+				kc.errCh <- e.Error
 				logger.Debugf("[PartitionEOF][Consumer: %s][Topic: %v][Partition: %v][Offset: %d][Message: %v]", kc.kafkaConsumer.String(), *e.Topic, e.Partition, e.Offset, fmt.Sprintf("\"%s\"", e.Error.Error()))
 			}
 		}

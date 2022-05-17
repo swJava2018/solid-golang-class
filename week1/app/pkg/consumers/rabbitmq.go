@@ -11,6 +11,11 @@ func init() {
 type RabbitMQConsumerClient struct {
 }
 
+// Init implements Consumer
+func (*RabbitMQConsumerClient) Init() error {
+	panic("unimplemented")
+}
+
 func NewRabbitMQConsumerClient() Consumer {
 
 	return &RabbitMQConsumerClient{}

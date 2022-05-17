@@ -31,7 +31,7 @@ type KafkaClientConfig struct {
 
 //implements Consumer interface
 type KafkaConsumerClient struct {
-	kafkaConsumer *kafka.KafkaConsumer
+	kafkaConsumer kafka.Consumer
 	payload       payloads.Payload
 	stream        chan interface{}
 }
@@ -50,16 +50,13 @@ func NewKafkaConsumerClient(config jsonObj) Consumer {
 	client := &KafkaConsumerClient{
 		kafkaConsumer: kafka.NewKafkaConsumer(kcCfg.Topic, kcCfg.ConsumerOptions),
 	}
-	err = client.InitClient()
-	if err != nil {
-		logger.Panicf(err.Error())
-	}
+
 	return client
 
 }
 
-// 컨슈머 생성, 파티션 정보를 가져옴.
-func (kc *KafkaConsumerClient) InitClient() error {
+// Init implements Consumer
+func (kc *KafkaConsumerClient) Init() error {
 	var err error
 
 	err = kc.Create()
@@ -79,7 +76,7 @@ func (kc *KafkaConsumerClient) InitClient() error {
 
 // Consumer 인터페이스 구현
 func (kc *KafkaConsumerClient) Consume(ctx context.Context, stream chan interface{}, errc chan error) error {
-	err := kc.kafkaConsumer.Read(ctx, stream)
+	err := kc.kafkaConsumer.Read(ctx, stream, errc)
 	if err != nil {
 		return err
 	}
@@ -130,7 +127,7 @@ func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 	for {
 		select {
 		// 스트림이 있을 때
-		case p := <-kc.kafkaConsumer.Stream:
+		case p := <-kc.kafkaConsumer.Stream():
 			data, err := json.Marshal(p)
 			if err != nil {
 				logger.Errorf("failed to marshall the stream data")

@@ -15,7 +15,9 @@ type (
 
 // consumer interface
 type Consumer interface {
-	//read data
+	//초기 작업
+	Init() error
+	//읽어 오기
 	Consume(ctx context.Context, stream chan interface{}, errc chan error) error
 }
 

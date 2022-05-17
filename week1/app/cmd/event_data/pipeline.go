@@ -79,10 +79,15 @@ func (e *EventDataPipeline) Run() error {
 
 		// 이벤트 기반 데이터를 소비하는 컨슈머 생성
 		consumer, err := consumers.CreateConsumer(cfg.Consumer.Name, cfg.Consumer.Config)
+
+		// 컨슈머 최초 작업 실행
+		err = consumer.Init()
+
 		if err != nil {
 			logger.Errorf("%v", err)
 			return err
 		}
+
 		logger.Debugf("%v consumer created", consumer)
 
 		// 컨슈머로 부터 데이터를 받아 처리하는 0개 이상의 프로세서 슬라이스 초기화

@@ -1,4 +1,4 @@
-package mq
+package rabbitmq
 
 type RabbitMQProducer struct {
 }

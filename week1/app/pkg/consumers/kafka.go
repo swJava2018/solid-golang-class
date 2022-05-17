@@ -6,7 +6,6 @@ import (
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
 	"event-data-pipeline/pkg/pipelines"
-	"time"
 
 	"event-data-pipeline/pkg/kafka"
 )
@@ -145,8 +144,8 @@ func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 			logger.Debugf("Context cancelled")
 		// 스트림이 없을 때 Sleep 후 다시 읽기 시도.
 		default:
-			logger.Debugf("No Next Stream. Sleeping for 2 seconds")
-			time.Sleep(2 * time.Second)
+			// logger.Debugf("No Next Stream. Sleeping for 2 seconds")
+			// time.Sleep(2 * time.Second)
 		}
 	}
 

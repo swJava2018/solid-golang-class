@@ -32,7 +32,6 @@ type KafkaClientConfig struct {
 type KafkaConsumerClient struct {
 	kafka.Consumer
 	payload payloads.Payload
-	stream  chan interface{}
 }
 
 func NewKafkaConsumerClient(config jsonObj) Consumer {

@@ -49,7 +49,7 @@ func (kc *KafkaSource) Next(ctx context.Context) bool {
 
 // Source 인터페이스 구현
 func (kc *KafkaSource) Payload() payloads.Payload {
-	return kc.Payload()
+	return kc.GetPaylod()
 }
 
 // Source 인터페이스 구현

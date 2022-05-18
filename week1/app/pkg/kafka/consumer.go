@@ -12,8 +12,8 @@ import (
 var _ Consumer = new(KafkaConsumer)
 
 type Consumer interface {
-	Create() error
-	CreateAdmin() error
+	CreateConsumer() error
+	CreateAdminConsumer() error
 	GetPartitions() error
 	Read(ctx context.Context, stream chan interface{}, errCh chan error) error
 	AssignPartition(partition int) error
@@ -64,7 +64,7 @@ func NewKafkaConsumer(topic string, config jsonObj) *KafkaConsumer {
 }
 
 //create KafkaClient instance
-func (kc *KafkaConsumer) Create() error {
+func (kc *KafkaConsumer) CreateConsumer() error {
 
 	if kc == nil {
 		kc = &KafkaConsumer{configMap: kc.configMap}
@@ -82,7 +82,7 @@ func (kc *KafkaConsumer) Create() error {
 
 }
 
-func (kc *KafkaConsumer) CreateAdmin() error {
+func (kc *KafkaConsumer) CreateAdminConsumer() error {
 	var err error
 	kc.adminClient, err = NewAdminClient(kc.topic, kc.kafkaConsumer)
 	if err != nil {
@@ -109,7 +109,7 @@ func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}, errC
 		// KafkaConsumer 인스턴스 복사
 		ckc := kc.Copy()
 		// KafkaConsumer 내부 실제 컨슈머 생성
-		ckc.Create()
+		ckc.CreateConsumer()
 		// 데이터를 읽어오기 위한 파티션에 할당
 		ckc.AssignPartition(int(p))
 		// 실제 데이터를 읽어오는 고루틴 생성

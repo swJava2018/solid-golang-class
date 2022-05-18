@@ -30,9 +30,9 @@ type KafkaClientConfig struct {
 
 //implements Consumer interface
 type KafkaConsumerClient struct {
-	kafkaConsumer kafka.Consumer
-	payload       payloads.Payload
-	stream        chan interface{}
+	kafka.Consumer
+	payload payloads.Payload
+	stream  chan interface{}
 }
 
 func NewKafkaConsumerClient(config jsonObj) Consumer {
@@ -46,9 +46,8 @@ func NewKafkaConsumerClient(config jsonObj) Consumer {
 	json.Unmarshal(_json, &kcCfg)
 
 	// create a new Consumer concrete type - KafkaConsumerClient
-	client := &KafkaConsumerClient{
-		kafkaConsumer: kafka.NewKafkaConsumer(kcCfg.Topic, kcCfg.ConsumerOptions),
-	}
+	client := &KafkaConsumerClient{}
+	client.Consumer = kafka.NewKafkaConsumer(kcCfg.Topic, kcCfg.ConsumerOptions)
 
 	return client
 
@@ -58,11 +57,11 @@ func NewKafkaConsumerClient(config jsonObj) Consumer {
 func (kc *KafkaConsumerClient) Init() error {
 	var err error
 
-	err = kc.Create()
+	err = kc.CreateConsumer()
 	if err != nil {
 		return err
 	}
-	err = kc.CreateAdmin()
+	err = kc.CreateAdminConsumer()
 	if err != nil {
 		return err
 	}
@@ -75,45 +74,10 @@ func (kc *KafkaConsumerClient) Init() error {
 
 // Consumer 인터페이스 구현
 func (kc *KafkaConsumerClient) Consume(ctx context.Context, stream chan interface{}, errc chan error) error {
-	err := kc.kafkaConsumer.Read(ctx, stream, errc)
+	err := kc.Read(ctx, stream, errc)
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-// kafkaConsumer 인스턴스 생성
-func (kc *KafkaConsumerClient) Create() error {
-	var err error
-
-	// Create Kafka Consumer
-	err = kc.kafkaConsumer.Create()
-	if err != nil {
-		return err
-	}
-	return err
-}
-
-// Consumer 인터페이스 구현
-func (kc *KafkaConsumerClient) CreateAdmin() error {
-	// create admin client from the consumer created
-	err := kc.kafkaConsumer.CreateAdmin()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Consumer 인터페이스 구현
-func (kc *KafkaConsumerClient) GetPartitions() error {
-
-	// get partitions to read
-	err := kc.kafkaConsumer.GetPartitions()
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -126,7 +90,7 @@ func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 	for {
 		select {
 		// 스트림이 있을 때
-		case p := <-kc.kafkaConsumer.Stream():
+		case p := <-kc.Stream():
 			data, err := json.Marshal(p)
 			if err != nil {
 				logger.Errorf("failed to marshall the stream data")

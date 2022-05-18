@@ -9,6 +9,7 @@ import (
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/pipelines"
 	"event-data-pipeline/pkg/processors"
+	"event-data-pipeline/pkg/sources"
 	"event-data-pipeline/pkg/storages_providers"
 	"sync"
 )
@@ -136,7 +137,7 @@ func (e *EventDataPipeline) Run() error {
 		// 1.source, storag provider 인터페이스 통합.
 		// 2.process signature 변경 sink > storage provider
 		// 프로세서
-		e.p.Process(&wg, ctx, consumer.(pipelines.Source), storageProviders)
+		e.p.Process(&wg, ctx, consumer.(sources.Source), storageProviders)
 	}
 	wg.Wait()
 	return nil

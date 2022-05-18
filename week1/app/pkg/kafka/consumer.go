@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"event-data-pipeline/pkg/logger"
+	"event-data-pipeline/pkg/payloads"
 	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -19,6 +20,8 @@ type Consumer interface {
 	AssignPartition(partition int) error
 	Poll(ctx context.Context)
 	Stream() chan interface{}
+	PutPaylod(p payloads.Payload) error
+	GetPaylod() payloads.Payload
 }
 
 type KafkaConsumer struct {
@@ -40,11 +43,8 @@ type KafkaConsumer struct {
 	stream chan interface{}
 
 	errCh chan error
-}
 
-// Stream implements Consumer
-func (kc *KafkaConsumer) Stream() chan interface{} {
-	return kc.stream
+	payload payloads.Payload
 }
 
 func NewKafkaConsumer(topic string, config jsonObj) *KafkaConsumer {
@@ -185,4 +185,20 @@ func (kc *KafkaConsumer) Poll(ctx context.Context) {
 			}
 		}
 	}
+}
+
+// GetPaylod implements Consumer
+func (kc *KafkaConsumer) GetPaylod() payloads.Payload {
+	return kc.payload
+}
+
+// PutPaylod implements Consumer
+func (kc *KafkaConsumer) PutPaylod(p payloads.Payload) error {
+	kc.payload = p
+	return nil
+}
+
+// Stream implements Consumer
+func (kc *KafkaConsumer) Stream() chan interface{} {
+	return kc.stream
 }

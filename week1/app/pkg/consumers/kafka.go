@@ -4,14 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"event-data-pipeline/pkg/logger"
-	"event-data-pipeline/pkg/payloads"
-	"event-data-pipeline/pkg/pipelines"
+	"event-data-pipeline/pkg/sources"
 
 	"event-data-pipeline/pkg/kafka"
 )
 
 // compile type assertion check
-var _ pipelines.Source = new(KafkaConsumerClient)
 var _ Consumer = new(KafkaConsumerClient)
 var _ ConsumerFactory = NewKafkaConsumerClient
 
@@ -31,7 +29,7 @@ type KafkaClientConfig struct {
 //implements Consumer interface
 type KafkaConsumerClient struct {
 	kafka.Consumer
-	payload payloads.Payload
+	sources.Source
 }
 
 func NewKafkaConsumerClient(config jsonObj) Consumer {
@@ -47,6 +45,8 @@ func NewKafkaConsumerClient(config jsonObj) Consumer {
 	// create a new Consumer concrete type - KafkaConsumerClient
 	client := &KafkaConsumerClient{}
 	client.Consumer = kafka.NewKafkaConsumer(kcCfg.Topic, kcCfg.ConsumerOptions)
+	source := sources.NewKafkaSource(client.Consumer)
+	client.Source = source
 
 	return client
 
@@ -80,46 +80,46 @@ func (kc *KafkaConsumerClient) Consume(ctx context.Context, stream chan interfac
 	return nil
 }
 
-// Source 인터페이스 구현
-// 다음 Payload 가 있는지 확인
-// 특정 페이로드 타입으로 변환
-func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
+// // Source 인터페이스 구현
+// // 다음 Payload 가 있는지 확인
+// // 특정 페이로드 타입으로 변환
+// func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
 
-	//스트림으로부터 읽어오기
-	for {
-		select {
-		// 스트림이 있을 때
-		case p := <-kc.Stream():
-			data, err := json.Marshal(p)
-			if err != nil {
-				logger.Errorf("failed to marshall the stream data")
-				return false
-			}
-			var kfkPayload payloads.KafkaPayload
-			err = json.Unmarshal(data, &kfkPayload)
-			if err != nil {
-				logger.Errorf(err.Error())
-			}
-			kc.payload = &kfkPayload
-			return true
-		// Shutdown
-		case <-ctx.Done():
-			logger.Debugf("Context cancelled")
-		// 스트림이 없을 때 Sleep 후 다시 읽기 시도.
-		default:
-			// logger.Debugf("No Next Stream. Sleeping for 2 seconds")
-			// time.Sleep(2 * time.Second)
-		}
-	}
+// 	//스트림으로부터 읽어오기
+// 	for {
+// 		select {
+// 		// 스트림이 있을 때
+// 		case p := <-kc.Stream():
+// 			data, err := json.Marshal(p)
+// 			if err != nil {
+// 				logger.Errorf("failed to marshall the stream data")
+// 				return false
+// 			}
+// 			var kfkPayload payloads.KafkaPayload
+// 			err = json.Unmarshal(data, &kfkPayload)
+// 			if err != nil {
+// 				logger.Errorf(err.Error())
+// 			}
+// 			kc.payload = &kfkPayload
+// 			return true
+// 		// Shutdown
+// 		case <-ctx.Done():
+// 			logger.Debugf("Context cancelled")
+// 		// 스트림이 없을 때 Sleep 후 다시 읽기 시도.
+// 		default:
+// 			// logger.Debugf("No Next Stream. Sleeping for 2 seconds")
+// 			// time.Sleep(2 * time.Second)
+// 		}
+// 	}
 
-}
+// }
 
-// Source 인터페이스 구현
-func (kc *KafkaConsumerClient) Payload() payloads.Payload {
-	return kc.payload
-}
+// // Source 인터페이스 구현
+// func (kc *KafkaConsumerClient) Payload() payloads.Payload {
+// 	return kc.payload
+// }
 
-// Source 인터페이스 구현
-func (kc *KafkaConsumerClient) Error() error {
-	return nil
-}
+// // Source 인터페이스 구현
+// func (kc *KafkaConsumerClient) Error() error {
+// 	return nil
+// }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
+	"event-data-pipeline/pkg/sources"
 	"event-data-pipeline/pkg/storages_providers"
 
 	"sync"
@@ -34,7 +35,7 @@ func New(stages ...StageRunner) *Pipeline {
 //  - the supplied context expires
 //
 // It is safe to call Process concurrently with different sources and sinks.
-func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source Source, storageProviders []storages_providers.StorageProvider) error {
+func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sources.Source, storageProviders []storages_providers.StorageProvider) error {
 	pCtx, ctxCancelFn := context.WithCancel(ctx)
 
 	// Allocate channels for wiring together the source, the pipeline stages
@@ -116,7 +117,7 @@ type Payload interface {
 // sourceWorker implements a worker that reads Payload instances from a Source
 // and pushes them to an output channel that is used as input for the first
 // stage of the pipeline.
-func sourceWorker(ctx context.Context, source Source, outCh chan<- payloads.Payload, errCh chan<- error) {
+func sourceWorker(ctx context.Context, source sources.Source, outCh chan<- payloads.Payload, errCh chan<- error) {
 out:
 	for {
 		select {

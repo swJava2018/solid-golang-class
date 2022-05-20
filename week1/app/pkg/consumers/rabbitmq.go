@@ -22,8 +22,14 @@ type RabbitMQConsumerClient struct {
 }
 
 func NewRabbitMQConsumerClient(config jsonObj) Consumer {
-
-	return &RabbitMQConsumerClient{}
+	// load config to
+	//
+	// create rabbitq consumer
+	client := &RabbitMQConsumerClient{}
+	client.Consumer = rabbitmq.NewRabbitMQConsumer()
+	source := 
+	client.Source = nil
+	return
 }
 
 // Init implements Consumer

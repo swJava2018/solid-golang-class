@@ -1,6 +1,14 @@
 package consumers
 
-import "context"
+import (
+	"context"
+	"event-data-pipeline/pkg/rabbitmq"
+	"event-data-pipeline/pkg/sources"
+)
+
+// compile type assertion check
+var _ Consumer = new(RabbitMQConsumerClient)
+var _ ConsumerFactory = NewRabbitMQConsumerClient
 
 func init() {
 
@@ -9,20 +17,27 @@ func init() {
 }
 
 type RabbitMQConsumerClient struct {
+	rabbitmq.Consumer
+	sources.Source
 }
 
-// Init implements Consumer
-func (*RabbitMQConsumerClient) Init() error {
-	panic("unimplemented")
-}
-
-func NewRabbitMQConsumerClient() Consumer {
+func NewRabbitMQConsumerClient(config jsonObj) Consumer {
 
 	return &RabbitMQConsumerClient{}
 }
 
+// Init implements Consumer
+func (rc *RabbitMQConsumerClient) Init() error {
+	err := rc.Create()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Consume implements Consumer
-func (*RabbitMQConsumerClient) Consume(ctx context.Context, stream chan interface{}, errc chan error) error {
+func (rc *RabbitMQConsumerClient) Consume(ctx context.Context, stream chan interface{}, errc chan error) error {
 	// DO SOMETHING
 	return nil
 }

@@ -9,6 +9,18 @@ import (
 	"github.com/streadway/amqp"
 )
 
+type Consumer interface {
+	Create() error
+	Connect() error
+	CreateChannel() error
+	Delete() error
+	ReConnect() error
+	FetchRecords() (map[string]interface{}, error)
+	ExchangeDeclare() error
+	QueueBind() error
+	InitDeliveryChannel() error
+}
+
 type RabbitMQConsumer struct {
 	host           string
 	exchangeName   string

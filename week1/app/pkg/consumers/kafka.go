@@ -41,12 +41,13 @@ func NewKafkaConsumerClient(config jsonObj) Consumer {
 		logger.Panicf(err.Error())
 	}
 	json.Unmarshal(_json, &kcCfg)
+	kfkCnsmr := kafka.NewKafkaConsumer(kcCfg.ConsumerOptions)
 
 	// create a new Consumer concrete type - KafkaConsumerClient
-	client := &KafkaConsumerClient{}
-	client.Consumer = kafka.NewKafkaConsumer(kcCfg.Topic, kcCfg.ConsumerOptions)
-	source := sources.NewKafkaSource(client.Consumer)
-	client.Source = source
+	client := &KafkaConsumerClient{
+		Consumer: kfkCnsmr,
+		Source:   sources.NewKafkaSource(kfkCnsmr),
+	}
 
 	return client
 
@@ -72,54 +73,10 @@ func (kc *KafkaConsumerClient) Init() error {
 }
 
 // Consumer 인터페이스 구현
-func (kc *KafkaConsumerClient) Consume(ctx context.Context, stream chan interface{}, errc chan error) error {
-	err := kc.Read(ctx, stream, errc)
+func (kc *KafkaConsumerClient) Consume(ctx context.Context) error {
+	err := kc.Read(ctx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-
-// // Source 인터페이스 구현
-// // 다음 Payload 가 있는지 확인
-// // 특정 페이로드 타입으로 변환
-// func (kc *KafkaConsumerClient) Next(ctx context.Context) bool {
-
-// 	//스트림으로부터 읽어오기
-// 	for {
-// 		select {
-// 		// 스트림이 있을 때
-// 		case p := <-kc.Stream():
-// 			data, err := json.Marshal(p)
-// 			if err != nil {
-// 				logger.Errorf("failed to marshall the stream data")
-// 				return false
-// 			}
-// 			var kfkPayload payloads.KafkaPayload
-// 			err = json.Unmarshal(data, &kfkPayload)
-// 			if err != nil {
-// 				logger.Errorf(err.Error())
-// 			}
-// 			kc.payload = &kfkPayload
-// 			return true
-// 		// Shutdown
-// 		case <-ctx.Done():
-// 			logger.Debugf("Context cancelled")
-// 		// 스트림이 없을 때 Sleep 후 다시 읽기 시도.
-// 		default:
-// 			// logger.Debugf("No Next Stream. Sleeping for 2 seconds")
-// 			// time.Sleep(2 * time.Second)
-// 		}
-// 	}
-
-// }
-
-// // Source 인터페이스 구현
-// func (kc *KafkaConsumerClient) Payload() payloads.Payload {
-// 	return kc.payload
-// }
-
-// // Source 인터페이스 구현
-// func (kc *KafkaConsumerClient) Error() error {
-// 	return nil
-// }

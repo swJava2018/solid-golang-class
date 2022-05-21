@@ -18,7 +18,7 @@ type Consumer interface {
 	//초기 작업
 	Initializer
 	//읽어 오기
-	Consume(ctx context.Context, stream chan interface{}, errc chan error) error
+	Consume(ctx context.Context) error
 }
 
 // a factory func type to instantiate a concrete Consumer type

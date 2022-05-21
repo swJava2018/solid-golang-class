@@ -26,15 +26,15 @@ func NewRabbitMQConsumerClient(config jsonObj) Consumer {
 	//
 	// create rabbitq consumer
 	client := &RabbitMQConsumerClient{}
-	client.Consumer = rabbitmq.NewRabbitMQConsumer()
-	source := 
-	client.Source = nil
-	return
+	client.Consumer = rabbitmq.NewRabbitMQConsumer(config)
+	// source :=
+	// client.Source = nil
+	return client
 }
 
 // Init implements Consumer
 func (rc *RabbitMQConsumerClient) Init() error {
-	err := rc.Create()
+	err := rc.CreateConsumer()
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (rc *RabbitMQConsumerClient) Init() error {
 }
 
 // Consume implements Consumer
-func (rc *RabbitMQConsumerClient) Consume(ctx context.Context, stream chan interface{}, errc chan error) error {
+func (rc *RabbitMQConsumerClient) Consume(ctx context.Context) error {
 	// DO SOMETHING
 	return nil
 }

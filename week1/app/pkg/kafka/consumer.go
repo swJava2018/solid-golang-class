@@ -16,7 +16,7 @@ type Consumer interface {
 	CreateConsumer() error
 	CreateAdminConsumer() error
 	GetPartitions() error
-	Read(ctx context.Context, stream chan interface{}, errCh chan error) error
+	Read(ctx context.Context) error
 	AssignPartition(partition int) error
 	Poll(ctx context.Context)
 	Stream() chan interface{}
@@ -40,6 +40,8 @@ type KafkaConsumer struct {
 	//partitions response
 	partitions *PartitionsResponse
 
+	ctx context.Context
+
 	stream chan interface{}
 
 	errCh chan error
@@ -47,7 +49,31 @@ type KafkaConsumer struct {
 	payload payloads.Payload
 }
 
-func NewKafkaConsumer(topic string, config jsonObj) *KafkaConsumer {
+func NewKafkaConsumer(config jsonObj) *KafkaConsumer {
+
+	//extract topic from config
+	topic, ok := config["topic"].(string)
+	if !ok {
+		logger.Panicf("no topic provided")
+	}
+
+	//extract context from config
+	ctx, ok := config["context"].(context.Context)
+	if !ok {
+		logger.Panicf("no topic provided")
+	}
+
+	//extract stream chan from config
+	stream, ok := config["stream"].(chan interface{})
+	if !ok {
+		logger.Panicf("no stream provided")
+	}
+
+	//extract error chan from config
+	errch, ok := config["errch"].(chan error)
+	if !ok {
+		logger.Panicf("no stream provided")
+	}
 
 	// load Consumer Options to kafka.ConfigMap
 	raw, _ := json.Marshal(config)
@@ -58,7 +84,11 @@ func NewKafkaConsumer(topic string, config jsonObj) *KafkaConsumer {
 	kafkaConsumer := &KafkaConsumer{
 		topic:     topic,
 		configMap: &kcm,
+		ctx:       ctx,
+		stream:    stream,
+		errCh:     errch,
 	}
+
 	return kafkaConsumer
 
 }
@@ -101,9 +131,7 @@ func (kc *KafkaConsumer) GetPartitions() error {
 	return nil
 }
 
-func (kc *KafkaConsumer) Read(ctx context.Context, stream chan interface{}, errCh chan error) error {
-	kc.stream = stream
-	kc.errCh = errCh
+func (kc *KafkaConsumer) Read(ctx context.Context) error {
 	// 파티션 별로 카프카 컨슈머 생성
 	for _, p := range kc.partitions.Partitions {
 		// KafkaConsumer 인스턴스 복사

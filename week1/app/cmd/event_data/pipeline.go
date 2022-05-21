@@ -74,12 +74,27 @@ func (e *EventDataPipeline) Run() error {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
+	// 컨슈머 읽기 채널
+	stream := make(chan interface{})
+
+	// 컨슈머 에러 채널
+	errCh := make(chan error)
+
 	// loop through PipelineConfigs
 	for _, cfg := range e.cfgs {
 		wg.Add(1)
 
+		//채널, 컨텍스트 삽입
+		cfg.Consumer.Config["context"] = ctx
+		cfg.Consumer.Config["stream"] = stream
+		cfg.Consumer.Config["errch"] = errCh
+
 		// 이벤트 기반 데이터를 소비하는 컨슈머 생성
 		consumer, err := consumers.CreateConsumer(cfg.Consumer.Name, cfg.Consumer.Config)
+		if err != nil {
+			logger.Errorf("%v", err)
+			return err
+		}
 
 		// 컨슈머 최초 작업 실행
 		err = consumer.Init()
@@ -125,14 +140,8 @@ func (e *EventDataPipeline) Run() error {
 		// 파이프라인 초기화
 		e.p = pipelines.New(stageRunners...)
 
-		// 컨슈머 읽기 채널
-		stream := make(chan interface{})
-
-		// 컨슈머 에러 채널
-		errCh := make(chan error)
-
 		// 컨슈머 읽기 고루틴
-		go consumer.Consume(ctx, stream, errCh)
+		go consumer.Consume(ctx)
 
 		// 1.source, storag provider 인터페이스 통합.
 		// 2.process signature 변경 sink > storage provider

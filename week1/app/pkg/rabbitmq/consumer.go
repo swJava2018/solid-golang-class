@@ -1,16 +1,21 @@
 package rabbitmq
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"event-data-pipeline/pkg/logger"
+	"event-data-pipeline/pkg/payloads"
 	"time"
 
 	"github.com/streadway/amqp"
 )
 
+var _ Consumer = new(RabbitMQConsumer)
+
 type Consumer interface {
-	Create() error
+	CreateConsumer() error
+	Read(ctx context.Context) error
 	Connect() error
 	CreateChannel() error
 	Delete() error
@@ -19,37 +24,73 @@ type Consumer interface {
 	ExchangeDeclare() error
 	QueueBind() error
 	InitDeliveryChannel() error
+
+	//Source 구현체에서 필요한 인터페이스
+	Stream() chan interface{}
+	PutPaylod(p payloads.Payload) error
+	GetPaylod() payloads.Payload
 }
 
 type RabbitMQConsumer struct {
-	host           string
-	exchangeName   string
-	exchangeType   string
-	queueName      string
-	routingKey     string
+	config         *RabbitMQConsumerConfig
 	conn           *amqp.Connection
 	ConnMaxRetries int
 	ch             *amqp.Channel
 	q              amqp.Queue
 	message        <-chan amqp.Delivery
-	err            chan error
-	shutdown       chan bool
+	ctx            context.Context
+	stream         chan interface{}
+	errCh          chan error
 }
 
-func NewRabbitMQConsumer(host string, exchangeName string, exchangeType string, queueName string, routingKey string) *RabbitMQConsumer {
+// Read implements Consumer
+func (*RabbitMQConsumer) Read(ctx context.Context) error {
+
+	return nil
+}
+
+func NewRabbitMQConsumer(config jsonObj) *RabbitMQConsumer {
+
+	//extract context from config
+	ctx, ok := config["context"].(context.Context)
+	if !ok {
+		logger.Panicf("no topic provided")
+	}
+
+	//extract stream chan from config
+	stream, ok := config["stream"].(chan interface{})
+	if !ok {
+		logger.Panicf("no stream provided")
+	}
+
+	//extract error chan from config
+	errch, ok := config["errch"].(chan error)
+	if !ok {
+		logger.Panicf("no stream provided")
+	}
+
+	var cfg RabbitMQConsumerConfig
+	cfgData, err := json.Marshal(config)
+	if err != nil {
+		logger.Panicf("error in mashalling rabbitmq configuration: %v", err)
+		return nil
+	}
+
+	err = json.Unmarshal(cfgData, &cfg)
+	if err != nil {
+		logger.Panicf("error in loading rabbitmq configuration: %v", err)
+		return nil
+	}
 
 	c := &RabbitMQConsumer{
-		host:         host,
-		exchangeName: exchangeName,
-		exchangeType: exchangeType,
-		queueName:    queueName,
-		routingKey:   routingKey,
-		err:          make(chan error),
-		shutdown:     make(chan bool, 1),
+		config: &cfg,
+		ctx:    ctx,
+		stream: stream,
+		errCh:  errch,
 	}
 	return c
 }
-func (c *RabbitMQConsumer) Create() error {
+func (c *RabbitMQConsumer) CreateConsumer() error {
 
 	// best practice is to reuse connections and channels
 	err := c.Connect()
@@ -69,7 +110,7 @@ func (c *RabbitMQConsumer) Connect() error {
 	c.ConnMaxRetries = -1
 	retry := 0
 	for {
-		conn, err := amqp.Dial(c.host)
+		conn, err := amqp.Dial(c.config.Host)
 		if conn != nil {
 			logger.Infof("rabbitmq connection made")
 			c.conn = conn
@@ -85,7 +126,7 @@ func (c *RabbitMQConsumer) Connect() error {
 	//Listen to NotifyClose
 	go func() {
 		<-c.conn.NotifyClose(make(chan *amqp.Error))
-		c.err <- errors.New("rabbitmq connection closed")
+		c.errCh <- errors.New("rabbitmq connection closed")
 	}()
 	return nil
 }
@@ -152,7 +193,7 @@ func (c *RabbitMQConsumer) FetchRecords() (map[string]interface{}, error) {
 	select {
 	case message := <-c.message:
 		letter = message
-	case <-c.shutdown:
+	case <-c.ctx.Done():
 		return nil, nil
 	}
 	logger.Debugf("Recevied Letter :%s", string(letter.Body))
@@ -166,13 +207,13 @@ func (c *RabbitMQConsumer) FetchRecords() (map[string]interface{}, error) {
 func (c *RabbitMQConsumer) ExchangeDeclare() error {
 
 	err := c.ch.ExchangeDeclare(
-		c.exchangeName, // name
-		c.exchangeType, // type
-		true,           // durable
-		false,          // auto-deleted
-		false,          // internal
-		false,          // no-wait
-		nil,            // arguments
+		c.config.ExchangeName, // name
+		c.config.ExchangeType, // type
+		true,                  // durable
+		false,                 // auto-deleted
+		false,                 // internal
+		false,                 // no-wait
+		nil,                   // arguments
 	)
 	if err != nil {
 		return err
@@ -181,12 +222,12 @@ func (c *RabbitMQConsumer) ExchangeDeclare() error {
 }
 func (c *RabbitMQConsumer) QueueDeclare() error {
 	q, err := c.ch.QueueDeclare(
-		c.queueName, // name
-		true,        // durable
-		false,       // delete when unused
-		false,       // exclusive
-		false,       // no-wait
-		nil,         // arguments
+		c.config.QueueName, // name
+		true,               // durable
+		false,              // delete when unused
+		false,              // exclusive
+		false,              // no-wait
+		nil,                // arguments
 	)
 	c.q = q
 	if err != nil {
@@ -197,9 +238,9 @@ func (c *RabbitMQConsumer) QueueDeclare() error {
 
 func (c *RabbitMQConsumer) QueueBind() error {
 	err := c.ch.QueueBind(
-		c.queueName,    // queue name
-		c.routingKey,   // routing key
-		c.exchangeName, // exchange
+		c.config.QueueName,    // queue name
+		c.config.RoutingKey,   // routing key
+		c.config.ExchangeName, // exchange
 		false,
 		nil,
 	)
@@ -211,17 +252,32 @@ func (c *RabbitMQConsumer) QueueBind() error {
 
 func (c *RabbitMQConsumer) InitDeliveryChannel() error {
 	msg, err := c.ch.Consume(
-		c.queueName, // queue
-		"",          // consumer
-		true,        // auto-ack
-		false,       // exclusive
-		false,       // no-local
-		false,       // no-wait
-		nil,         // args
+		c.config.QueueName, // queue
+		"",                 // consumer
+		true,               // auto-ack
+		false,              // exclusive
+		false,              // no-local
+		false,              // no-wait
+		nil,                // args
 	)
 	if err != nil {
 		return err
 	}
 	c.message = msg
 	return nil
+}
+
+// GetPaylod implements Consumer
+func (*RabbitMQConsumer) GetPaylod() payloads.Payload {
+	panic("unimplemented")
+}
+
+// PutPaylod implements Consumer
+func (*RabbitMQConsumer) PutPaylod(p payloads.Payload) error {
+	panic("unimplemented")
+}
+
+// Stream implements Consumer
+func (*RabbitMQConsumer) Stream() chan interface{} {
+	panic("unimplemented")
 }

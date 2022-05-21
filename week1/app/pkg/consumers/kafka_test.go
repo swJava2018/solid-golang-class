@@ -27,6 +27,8 @@ func TestKafkaConsumerClient_Consume(t *testing.T) {
 	errCh := make(chan error)
 
 	for _, cfg := range pipeCfgs {
+		cfg.Consumer.Config["stream"] = stream
+		cfg.Consumer.Config["errch"] = errCh
 		kafkaConsumer, err := CreateConsumer(cfg.Consumer.Name, cfg.Consumer.Config)
 		if err != nil {
 			t.Error(err)
@@ -35,7 +37,7 @@ func TestKafkaConsumerClient_Consume(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		kafkaConsumer.Consume(context.TODO(), stream, errCh)
+		kafkaConsumer.Consume(context.TODO())
 	}
 
 	for {

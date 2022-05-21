@@ -34,14 +34,25 @@ type KafkaConsumerClient struct {
 
 func NewKafkaConsumerClient(config jsonObj) Consumer {
 
+	// KafkaClientConfig로 값을 담기 위한 오브젝트
+	consumerCfgObj, ok := config["consumerCfg"].(jsonObj)
+	if !ok {
+		logger.Panicf("no consumer configuration provided")
+	}
+
 	// Read config into KafkaClientConfig struct
 	var kcCfg KafkaClientConfig
-	_json, err := json.Marshal(config)
+	cfgData, err := json.Marshal(consumerCfgObj)
 	if err != nil {
-		logger.Panicf(err.Error())
+		logger.Errorf(err.Error())
 	}
-	json.Unmarshal(_json, &kcCfg)
-	kfkCnsmr := kafka.NewKafkaConsumer(kcCfg.ConsumerOptions)
+	json.Unmarshal(cfgData, &kcCfg)
+
+	kfkCnsmrCfg := make(jsonObj)
+	kfkCnsmrCfg["topic"] = kcCfg.Topic
+	kfkCnsmrCfg["consumerOptions"] = kcCfg.ConsumerOptions
+	kfkCnsmrCfg["pipeParams"] = config["pipeParams"]
+	kfkCnsmr := kafka.NewKafkaConsumer(kfkCnsmrCfg)
 
 	// create a new Consumer concrete type - KafkaConsumerClient
 	client := &KafkaConsumerClient{

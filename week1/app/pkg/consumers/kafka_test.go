@@ -23,13 +23,27 @@ func TestKafkaConsumerClient_Consume(t *testing.T) {
 	logger.Setup()
 	cfg := config.NewConfig()
 	pipeCfgs := config.NewPipelineConfig(cfg.PipelineCfgsPath)
+
+	ctx := context.TODO()
 	stream := make(chan interface{})
 	errCh := make(chan error)
 
 	for _, cfg := range pipeCfgs {
-		cfg.Consumer.Config["stream"] = stream
-		cfg.Consumer.Config["errch"] = errCh
-		kafkaConsumer, err := CreateConsumer(cfg.Consumer.Name, cfg.Consumer.Config)
+		cfgParams := make(jsonObj)
+		pipeParams := make(jsonObj)
+
+		// 컨텍스트
+		pipeParams["context"] = ctx
+		pipeParams["stream"] = stream
+
+		// 컨슈머 에러 채널
+		errCh := make(chan error)
+		pipeParams["errch"] = errCh
+
+		cfgParams["pipeParams"] = pipeParams
+		cfgParams["consumerCfg"] = cfg.Consumer.Config
+
+		kafkaConsumer, err := CreateConsumer(cfg.Consumer.Name, cfgParams)
 		if err != nil {
 			t.Error(err)
 		}

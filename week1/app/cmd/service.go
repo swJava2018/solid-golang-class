@@ -3,6 +3,7 @@ package cmd
 import (
 	"event-data-pipeline/cmd/event_data"
 	"event-data-pipeline/pkg/config"
+	"event-data-pipeline/pkg/logger"
 	"log"
 	_ "net/http/pprof"
 	"runtime/debug"
@@ -38,6 +39,8 @@ func Run(cfg config.Config) {
 
 	// 파이프라인 프로세스를 구동하는 메소드
 	edp.Run()
+
+	logger.Infof("shutting down service.")
 }
 
 func GarbageCollector() {

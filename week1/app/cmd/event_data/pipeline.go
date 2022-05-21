@@ -67,30 +67,36 @@ func (e *EventDataPipeline) ValidateConfigs() error {
 // 파이프라인을 구동하는 메소드
 func (e *EventDataPipeline) Run() error {
 
+	// 설정파일을 모두 담은 오브젝트
+	cfgParams := make(jsonObj)
 	// Goroutine 실행 후 대기를 위한 WaiterGroup
 	var wg sync.WaitGroup
 
+	// Context, Stream, Error Channel 을 전달하기 위한 오브젝트
+	pipeParams := make(jsonObj)
 	// Graceful Shutdown 을 위한 Context, CancelFunction
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
+	pipeParams["context"] = ctx
 
 	// 컨슈머 읽기 채널
 	stream := make(chan interface{})
+	pipeParams["stream"] = stream
 
 	// 컨슈머 에러 채널
 	errCh := make(chan error)
+	pipeParams["errch"] = errCh
 
 	// loop through PipelineConfigs
 	for _, cfg := range e.cfgs {
 		wg.Add(1)
 
 		//채널, 컨텍스트 삽입
-		cfg.Consumer.Config["context"] = ctx
-		cfg.Consumer.Config["stream"] = stream
-		cfg.Consumer.Config["errch"] = errCh
+		cfgParams["pipeParams"] = pipeParams
+		cfgParams["consumerCfg"] = cfg.Consumer.Config
 
 		// 이벤트 기반 데이터를 소비하는 컨슈머 생성
-		consumer, err := consumers.CreateConsumer(cfg.Consumer.Name, cfg.Consumer.Config)
+		consumer, err := consumers.CreateConsumer(cfg.Consumer.Name, cfgParams)
 		if err != nil {
 			logger.Errorf("%v", err)
 			return err
@@ -143,12 +149,10 @@ func (e *EventDataPipeline) Run() error {
 		// 컨슈머 읽기 고루틴
 		go consumer.Consume(ctx)
 
-		// 1.source, storag provider 인터페이스 통합.
-		// 2.process signature 변경 sink > storage provider
-		// 프로세서
 		e.p.Process(&wg, ctx, consumer.(sources.Source), storageProviders)
 	}
 	wg.Wait()
+	logger.Infof("shutting down the event data pipeline...")
 	return nil
 }
 

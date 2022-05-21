@@ -50,35 +50,43 @@ type KafkaConsumer struct {
 }
 
 func NewKafkaConsumer(config jsonObj) *KafkaConsumer {
-
-	//extract topic from config
 	topic, ok := config["topic"].(string)
 	if !ok {
 		logger.Panicf("no topic provided")
 	}
+	pipeParams, ok := config["pipeParams"].(map[string]interface{})
+	if !ok {
+		logger.Panicf("no pipeParams provided")
+	}
 
 	//extract context from config
-	ctx, ok := config["context"].(context.Context)
+	ctx, ok := pipeParams["context"].(context.Context)
 	if !ok {
 		logger.Panicf("no topic provided")
 	}
 
 	//extract stream chan from config
-	stream, ok := config["stream"].(chan interface{})
+	stream, ok := pipeParams["stream"].(chan interface{})
 	if !ok {
 		logger.Panicf("no stream provided")
 	}
 
 	//extract error chan from config
-	errch, ok := config["errch"].(chan error)
+	errch, ok := pipeParams["errch"].(chan error)
 	if !ok {
-		logger.Panicf("no stream provided")
+		logger.Panicf("no errch provided")
+	}
+
+	//consumerOptions
+	kfkCnsmrCfg, ok := config["consumerOptions"].(map[string]interface{})
+	if !ok {
+		logger.Panicf("no errch provided")
 	}
 
 	// load Consumer Options to kafka.ConfigMap
-	raw, _ := json.Marshal(config)
+	cfgMapData, _ := json.Marshal(kfkCnsmrCfg)
 	var kcm kafka.ConfigMap
-	json.Unmarshal(raw, &kcm)
+	json.Unmarshal(cfgMapData, &kcm)
 
 	// create a new KafkaConsumer with configMap fed in
 	kafkaConsumer := &KafkaConsumer{

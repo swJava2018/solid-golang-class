@@ -6,9 +6,7 @@ package logger
 import (
 	"context"
 	"event-data-pipeline/pkg/cli"
-
 	"os"
-	"sync"
 
 	"github.com/alexflint/go-arg"
 	"github.com/natefinch/lumberjack"
@@ -29,63 +27,60 @@ var (
 	logToConsole bool
 	logToFile    bool
 	production   bool
-	once         sync.Once
 )
 
 // copied from init() funciton to control execution in runtime.
 func Setup() {
-	once.Do(func() {
-		arg.MustParse(&cli.Args)
+	arg.MustParse(&cli.Args)
 
-		filePath = cli.Args.LogfilePath
-		logToFile = cli.Args.LoggingToFileEnabled
-		production = !cli.Args.DebugEnabled
+	filePath = cli.Args.LogfilePath
+	logToFile = cli.Args.LoggingToFileEnabled
+	production = !cli.Args.DebugEnabled
 
-		var ec zapcore.EncoderConfig
-		var level zapcore.Level
+	var ec zapcore.EncoderConfig
+	var level zapcore.Level
 
-		// Apply one of the default encoder configs based on run-time environment (prod vs non-prod)
-		if production {
-			ec = zap.NewProductionEncoderConfig()
-			level = zap.NewProductionConfig().Level.Level()
-		} else {
-			ec = zap.NewDevelopmentEncoderConfig()
-			level = zap.NewDevelopmentConfig().Level.Level()
+	// Apply one of the default encoder configs based on run-time environment (prod vs non-prod)
+	if production {
+		ec = zap.NewProductionEncoderConfig()
+		level = zap.NewProductionConfig().Level.Level()
+	} else {
+		ec = zap.NewDevelopmentEncoderConfig()
+		level = zap.NewDevelopmentConfig().Level.Level()
+	}
+
+	// Create a JSON encoder and customize date & time formatting
+	encoder := zapcore.NewJSONEncoder(ec)
+	ec.EncodeTime = zapcore.ISO8601TimeEncoder //The encoder can be customized for each output
+
+	// Initialize logging to console
+	var consoleEncoder zapcore.Encoder
+	consoleEncoder = zapcore.NewConsoleEncoder(ec)
+
+	core := zapcore.NewTee(
+		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), level),
+	)
+
+	// Initialize logging to file if enabled
+	var writerSyncer zapcore.WriteSyncer
+	if logToFile {
+		lumberJackLogger := &lumberjack.Logger{
+			Filename:   filePath,
+			MaxSize:    10,
+			MaxBackups: 5,
+			MaxAge:     30,
+			Compress:   false,
 		}
+		writerSyncer = zapcore.AddSync(lumberJackLogger)
 
-		// Create a JSON encoder and customize date & time formatting
-		encoder := zapcore.NewJSONEncoder(ec)
-		ec.EncodeTime = zapcore.ISO8601TimeEncoder //The encoder can be customized for each output
+		core = zapcore.NewTee(core, zapcore.NewCore(encoder, writerSyncer, level))
+	}
 
-		// Initialize logging to console
-		var consoleEncoder zapcore.Encoder
-		consoleEncoder = zapcore.NewConsoleEncoder(ec)
+	// Include additional info in the log output
+	log = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zap.FatalLevel))
 
-		core := zapcore.NewTee(
-			zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), level),
-		)
-
-		// Initialize logging to file if enabled
-		var writerSyncer zapcore.WriteSyncer
-		if logToFile {
-			lumberJackLogger := &lumberjack.Logger{
-				Filename:   filePath,
-				MaxSize:    10,
-				MaxBackups: 5,
-				MaxAge:     30,
-				Compress:   false,
-			}
-			writerSyncer = zapcore.AddSync(lumberJackLogger)
-
-			core = zapcore.NewTee(core, zapcore.NewCore(encoder, writerSyncer, level))
-		}
-
-		// Include additional info in the log output
-		log = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zap.FatalLevel))
-
-		defer log.Sync() // flushes buffer, if any
-		zap.ReplaceGlobals(log)
-	})
+	defer log.Sync() // flushes buffer, if any
+	zap.ReplaceGlobals(log)
 }
 
 // WithRqId returns a context which knows its request ID

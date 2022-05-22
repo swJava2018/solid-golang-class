@@ -21,16 +21,14 @@ const (
 
 // Config configuration struct
 type Config struct {
-	Port               int    `json:"port,omitempty"`
-	Addr               string `json:"addr,omitempty"`
-	Scheme             string `json:"scheme,omitempty"`
-	ProductionMode     bool   `json:"production_mode,omitempty"`
-	ServerReadTimeout  int    `json:"server_read_timeout"`
-	ServerWriteTimeout int    `json:"server_write_timeout"`
-	BasePath           string `json:"base_path"`
-	DebugEnabled       bool   `json:"debug_enabled,omitempty"`
-	PipelineCfgsPath   string `json:"logger_configs_path"`
-	PipelineCfgs       []PipelineCfg
+	Port             int    `json:"port,omitempty"`
+	Addr             string `json:"addr,omitempty"`
+	Scheme           string `json:"scheme,omitempty"`
+	ProductionMode   bool   `json:"production_mode,omitempty"`
+	BasePath         string `json:"base_path"`
+	DebugEnabled     bool   `json:"debug_enabled,omitempty"`
+	PipelineCfgsPath string `json:"logger_configs_path"`
+	PipelineCfgs     []PipelineCfg
 }
 
 // PipelineCfg object is composed of a Service, Credentials, Kafka Config, and list of Processors

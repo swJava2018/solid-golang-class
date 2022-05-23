@@ -67,25 +67,28 @@ func (e *EventDataPipeline) ValidateConfigs() error {
 // 파이프라인을 구동하는 메소드
 func (e *EventDataPipeline) Run() error {
 
-	// 설정파일을 모두 담은 오브젝트
-	cfgParams := make(jsonObj)
 	// Goroutine 실행 후 대기를 위한 WaiterGroup
 	var wg sync.WaitGroup
 
+	// 설정파일을 모두 담은 오브젝트
+	cfgParams := make(jsonObj)
+
 	// Context, Stream, Error Channel 을 전달하기 위한 오브젝트
 	pipeParams := make(jsonObj)
+
 	// Graceful Shutdown 을 위한 Context, CancelFunction
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
-	pipeParams["context"] = ctx
+
+	Put("context", pipeParams, ctx)
 
 	// 컨슈머 읽기 채널
 	stream := make(chan interface{})
-	pipeParams["stream"] = stream
+	Put("stream", pipeParams, stream)
 
 	// 컨슈머 에러 채널
 	errCh := make(chan error)
-	pipeParams["errch"] = errCh
+	Put("errch", pipeParams, errCh)
 
 	// loop through PipelineConfigs
 	for _, cfg := range e.cfgs {
@@ -93,6 +96,8 @@ func (e *EventDataPipeline) Run() error {
 
 		//채널, 컨텍스트 삽입
 		cfgParams["pipeParams"] = pipeParams
+
+		//컨슈머 설정 값
 		cfgParams["consumerCfg"] = cfg.Consumer.Config
 
 		// 이벤트 기반 데이터를 소비하는 컨슈머 생성
@@ -149,11 +154,16 @@ func (e *EventDataPipeline) Run() error {
 		// 컨슈머 읽기 고루틴
 		go consumer.Consume(ctx)
 
+		// 파이프라인 프로세스 구동
 		e.p.Process(&wg, ctx, consumer.(sources.Source), storageProviders)
 	}
 	wg.Wait()
 	logger.Infof("shutting down the event data pipeline...")
 	return nil
+}
+
+func Put(key string, obj jsonObj, data interface{}) {
+	obj[key] = data
 }
 
 func (e *EventDataPipeline) GetCollectorRuntimeConfig() []*config.PipelineCfg {

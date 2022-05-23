@@ -21,13 +21,13 @@ type Consumer interface {
 	Consume(ctx context.Context) error
 }
 
-// a factory func type to instantiate a concrete Consumer type
+// 컨슈머 팩토리 함수
 type ConsumerFactory func(config jsonObj) Consumer
 
-// factories to register Consumers in init() function in each consumer
+// 컨슈머 팩토리 저장소
 var consumerFactories = make(map[string]ConsumerFactory)
 
-// Each consumer implementation must Register itself
+// 컨슈머를 최초 등록하기 위한 함수
 func Register(name string, factory ConsumerFactory) {
 	logger.Debugf("Registering consumer factory for %s", name)
 	if factory == nil {
@@ -40,7 +40,7 @@ func Register(name string, factory ConsumerFactory) {
 	consumerFactories[name] = factory
 }
 
-// CreateConsumer is a factory method that will create the named consumer
+// 컨슈머를 사용자의 설정값에 따라 반환하는 함수
 func CreateConsumer(name string, config jsonObj) (Consumer, error) {
 
 	factory, ok := consumerFactories[name]

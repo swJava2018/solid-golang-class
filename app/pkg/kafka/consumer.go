@@ -54,33 +54,13 @@ func NewKafkaConsumer(config jsonObj) *KafkaConsumer {
 	if !ok {
 		logger.Panicf("no topic provided")
 	}
-	pipeParams, ok := config["pipeParams"].(map[string]interface{})
-	if !ok {
-		logger.Panicf("no pipeParams provided")
-	}
-
-	//extract context from config
-	ctx, ok := pipeParams["context"].(context.Context)
-	if !ok {
-		logger.Panicf("no topic provided")
-	}
-
-	//extract stream chan from config
-	stream, ok := pipeParams["stream"].(chan interface{})
-	if !ok {
-		logger.Panicf("no stream provided")
-	}
-
-	//extract error chan from config
-	errch, ok := pipeParams["errch"].(chan error)
-	if !ok {
-		logger.Panicf("no errch provided")
-	}
+	//context, stream, errch 추출
+	ctx, stream, errch := extractPipeParams(config)
 
 	//consumerOptions
 	kfkCnsmrCfg, ok := config["consumerOptions"].(map[string]interface{})
 	if !ok {
-		logger.Panicf("no errch provided")
+		logger.Panicf("no consumer options provided")
 	}
 
 	// load Consumer Options to kafka.ConfigMap
@@ -99,6 +79,29 @@ func NewKafkaConsumer(config jsonObj) *KafkaConsumer {
 
 	return kafkaConsumer
 
+}
+
+func extractPipeParams(config jsonObj) (context.Context, chan interface{}, chan error) {
+	pipeParams, ok := config["pipeParams"].(map[string]interface{})
+	if !ok {
+		logger.Panicf("no pipeParams provided")
+	}
+
+	ctx, ok := pipeParams["context"].(context.Context)
+	if !ok {
+		logger.Panicf("no topic provided")
+	}
+
+	stream, ok := pipeParams["stream"].(chan interface{})
+	if !ok {
+		logger.Panicf("no stream provided")
+	}
+
+	errch, ok := pipeParams["errch"].(chan error)
+	if !ok {
+		logger.Panicf("no errch provided")
+	}
+	return ctx, stream, errch
 }
 
 //create KafkaClient instance

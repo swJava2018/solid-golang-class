@@ -50,27 +50,16 @@ func (*RabbitMQConsumer) Read(ctx context.Context) error {
 }
 
 func NewRabbitMQConsumer(config jsonObj) *RabbitMQConsumer {
+	//context, stream, errch 추출
+	ctx, stream, errch := extractPipeParams(config)
 
-	//extract context from config
-	ctx, ok := config["context"].(context.Context)
+	//consumerOptions
+	rbbtmqCnsmrCfg, ok := config["consumerOptions"].(map[string]interface{})
 	if !ok {
-		logger.Panicf("no topic provided")
+		logger.Panicf("no consumer options provided")
 	}
-
-	//extract stream chan from config
-	stream, ok := config["stream"].(chan interface{})
-	if !ok {
-		logger.Panicf("no stream provided")
-	}
-
-	//extract error chan from config
-	errch, ok := config["errch"].(chan error)
-	if !ok {
-		logger.Panicf("no stream provided")
-	}
-
 	var cfg RabbitMQConsumerConfig
-	cfgData, err := json.Marshal(config)
+	cfgData, err := json.Marshal(rbbtmqCnsmrCfg)
 	if err != nil {
 		logger.Panicf("error in mashalling rabbitmq configuration: %v", err)
 		return nil
@@ -90,6 +79,7 @@ func NewRabbitMQConsumer(config jsonObj) *RabbitMQConsumer {
 	}
 	return c
 }
+
 func (c *RabbitMQConsumer) CreateConsumer() error {
 
 	// best practice is to reuse connections and channels
@@ -280,4 +270,27 @@ func (*RabbitMQConsumer) PutPaylod(p payloads.Payload) error {
 // Stream implements Consumer
 func (*RabbitMQConsumer) Stream() chan interface{} {
 	panic("unimplemented")
+}
+
+func extractPipeParams(config jsonObj) (context.Context, chan interface{}, chan error) {
+	pipeParams, ok := config["pipeParams"].(map[string]interface{})
+	if !ok {
+		logger.Panicf("no pipeParams provided")
+	}
+
+	ctx, ok := pipeParams["context"].(context.Context)
+	if !ok {
+		logger.Panicf("no topic provided")
+	}
+
+	stream, ok := pipeParams["stream"].(chan interface{})
+	if !ok {
+		logger.Panicf("no stream provided")
+	}
+
+	errch, ok := pipeParams["errch"].(chan error)
+	if !ok {
+		logger.Panicf("no errch provided")
+	}
+	return ctx, stream, errch
 }

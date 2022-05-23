@@ -21,20 +21,24 @@ type RabbitMQConsumerClient struct {
 }
 
 func NewRabbitMQConsumerClient(config jsonObj) Consumer {
-	//TODO: 1주차 과제입니다.
-	client := &RabbitMQConsumerClient{}
+	//TODO: 1주차 과제 솔루션 입니다.
+
+	consumer := rabbitmq.NewRabbitMQConsumer(config)
+	client := &RabbitMQConsumerClient{
+		Consumer: consumer,
+	}
 	return client
 }
 
 // Init implements Consumer
 func (rc *RabbitMQConsumerClient) Init() error {
-	//TODO: 1주차 과제입니다.
+	//TODO: 1주차 과제 솔루션 입니다.
 
 	return nil
 }
 
 // Consume implements Consumer
 func (rc *RabbitMQConsumerClient) Consume(ctx context.Context) error {
-	//TODO: 1주차 과제입니다.
+	//TODO: 1주차 과제 솔루션 입니다.
 	return nil
 }

@@ -46,15 +46,13 @@ type ProcessorCfg struct {
 // NewConfig creates an instance of Config from command-line args and/or env vars
 func NewConfig() *Config {
 	cfg := &Config{
-		Port:               cli.Args.Port,
-		Addr:               cli.Args.Addr,
-		Scheme:             cli.Args.Scheme,
-		ServerReadTimeout:  cli.Args.ServerReadTimeout,
-		ServerWriteTimeout: cli.Args.ServerWriteTimeout,
-		BasePath:           cli.Args.BasePath,
-		DebugEnabled:       cli.Args.DebugEnabled,
-		ProductionMode:     !cli.Args.DebugEnabled,
-		PipelineCfgsPath:   cli.Args.Config,
+		Port:             cli.Args.Port,
+		Addr:             cli.Args.Addr,
+		Scheme:           cli.Args.Scheme,
+		BasePath:         cli.Args.BasePath,
+		DebugEnabled:     cli.Args.DebugEnabled,
+		ProductionMode:   !cli.Args.DebugEnabled,
+		PipelineCfgsPath: cli.Args.Config,
 	}
 
 	return cfg

@@ -23,6 +23,7 @@ type RabbitMQConsumerClient struct {
 
 func NewRabbitMQConsumerClient(config jsonObj) Consumer {
 	//TODO: 1주차 과제입니다.
+	client := &RabbitMQConsumerClient{}
 	return client
 }
 

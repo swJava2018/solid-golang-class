@@ -13,11 +13,9 @@ import (
 var _ Consumer = new(KafkaConsumerClient)
 var _ ConsumerFactory = NewKafkaConsumerClient
 
-// register kafka consumer client to factory
+// ConsumerFactory 에 kafka 컨슈머를 등록
 func init() {
-
 	Register("kafka", NewKafkaConsumerClient)
-
 }
 
 type KafkaClientConfig struct {
@@ -26,7 +24,7 @@ type KafkaClientConfig struct {
 	ConsumerOptions jsonObj `json:"consumer_options,omitempty"`
 }
 
-//implements Consumer interface
+//Consumer interface 구현체
 type KafkaConsumerClient struct {
 	kafka.Consumer
 	sources.Source

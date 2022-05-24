@@ -20,9 +20,8 @@ type Consumer interface {
 	CreateChannel() error
 	Delete() error
 	ReConnect() error
-	FetchRecords() (map[string]interface{}, error)
-	ExchangeDeclare() error
-	QueueBind() error
+	DeclareExchange() error
+	BindQueue() error
 	InitDeliveryChannel() error
 
 	//Source 구현체에서 필요한 인터페이스
@@ -44,8 +43,26 @@ type RabbitMQConsumer struct {
 }
 
 // Read implements Consumer
-func (*RabbitMQConsumer) Read(ctx context.Context) error {
+func (rc *RabbitMQConsumer) Read(ctx context.Context) error {
 
+	// Check RabbitMQ Connection Error
+	if rc.conn == nil {
+		err := rc.ReConnect()
+		if err != nil {
+			logger.Errorf("error in reconnecting: %v", err)
+		}
+	}
+
+	var letter amqp.Delivery
+	select {
+	case message := <-rc.message:
+		letter = message
+	case <-rc.ctx.Done():
+		return nil
+	}
+	data := string(letter.Body)
+	logger.Debugf("rabbitmq message :%s", data)
+	rc.stream <- data
 	return nil
 }
 
@@ -54,7 +71,7 @@ func NewRabbitMQConsumer(config jsonObj) *RabbitMQConsumer {
 	ctx, stream, errch := extractPipeParams(config)
 
 	//consumerOptions
-	rbbtmqCnsmrCfg, ok := config["consumerOptions"].(map[string]interface{})
+	rbbtmqCnsmrCfg, ok := config["consumerCfg"].(map[string]interface{})
 	if !ok {
 		logger.Panicf("no consumer options provided")
 	}
@@ -166,35 +183,7 @@ func (c *RabbitMQConsumer) ReConnect() error {
 
 }
 
-func (c *RabbitMQConsumer) FetchRecords() (map[string]interface{}, error) {
-	var body map[string]interface{}
-
-	// Check RabbitMQ Connection Error
-	if c.conn == nil {
-		err := c.ReConnect()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	logger.Debugf("waiting letter")
-
-	var letter amqp.Delivery
-	select {
-	case message := <-c.message:
-		letter = message
-	case <-c.ctx.Done():
-		return nil, nil
-	}
-	logger.Debugf("Recevied Letter :%s", string(letter.Body))
-	err := json.Unmarshal(letter.Body, &body)
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
-}
-
-func (c *RabbitMQConsumer) ExchangeDeclare() error {
+func (c *RabbitMQConsumer) DeclareExchange() error {
 
 	err := c.ch.ExchangeDeclare(
 		c.config.ExchangeName, // name
@@ -226,7 +215,7 @@ func (c *RabbitMQConsumer) QueueDeclare() error {
 	return nil
 }
 
-func (c *RabbitMQConsumer) QueueBind() error {
+func (c *RabbitMQConsumer) BindQueue() error {
 	err := c.ch.QueueBind(
 		c.config.QueueName,    // queue name
 		c.config.RoutingKey,   // routing key
@@ -243,7 +232,7 @@ func (c *RabbitMQConsumer) QueueBind() error {
 func (c *RabbitMQConsumer) InitDeliveryChannel() error {
 	msg, err := c.ch.Consume(
 		c.config.QueueName, // queue
-		"",                 // consumer
+		"edp-consumer",     // consumer
 		true,               // auto-ack
 		false,              // exclusive
 		false,              // no-local
@@ -268,8 +257,8 @@ func (*RabbitMQConsumer) PutPaylod(p payloads.Payload) error {
 }
 
 // Stream implements Consumer
-func (*RabbitMQConsumer) Stream() chan interface{} {
-	panic("unimplemented")
+func (rc *RabbitMQConsumer) Stream() chan interface{} {
+	return rc.stream
 }
 
 func extractPipeParams(config jsonObj) (context.Context, chan interface{}, chan error) {

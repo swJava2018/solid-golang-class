@@ -1,0 +1,27 @@
+[
+    {
+        "consumer": {
+            "name": "rabbitmq",
+            "config": {
+                "host": "amqp://guest:guest@localhost:5672/",
+                "exchange_name": "local.exchange",
+                "exchange_type": "direct",
+                "queue_name": "earthquake",
+                "routing_key": "earthquake"
+            }
+        },
+        "processors": [
+            {
+                "name": "noop"
+            }
+        ],
+        "storages": [
+            {
+                "name": "filesystem",
+                "config": {
+                    "path": "fs/"
+                }
+            }
+        ]
+    }
+]

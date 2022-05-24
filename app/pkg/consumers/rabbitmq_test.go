@@ -13,7 +13,7 @@ import (
 )
 
 func TestRabbitMQConsumerClient_Consume(t *testing.T) {
-	//TODO: 1주차 과제입니다.
+	//TODO: 1주차 과제 솔루션 입니다.
 	configPath := getCurDir() + "/test/consumers/rabbitmq_consumer_config.json"
 	os.Setenv("EDP_ENABLE_DEBUG_LOGGING", "true")
 	os.Setenv("EDP_CONFIG", configPath)

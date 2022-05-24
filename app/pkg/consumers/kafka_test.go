@@ -15,7 +15,7 @@ import (
 )
 
 func TestKafkaConsumerClient_Consume(t *testing.T) {
-	configPath := getCurDir() + "/test/consumers/config.json"
+	configPath := getCurDir() + "/test/consumers/kafka_consumer_config.json"
 	os.Setenv("EDP_ENABLE_DEBUG_LOGGING", "true")
 	os.Setenv("EDP_CONFIG", configPath)
 	os.Args = nil

@@ -4,11 +4,7 @@ services:
   rabbitmq:
     image: docker.io/bitnami/rabbitmq:3.10
     ports:
-      - '4469:4369'
-      - '5551:5551'
-      - '5552:5552'
       - '5672:5672'
-      - '25672:25672'
       - '15672:15672'
     environment:
       - RABBITMQ_SECURE_PASSWORD=yes

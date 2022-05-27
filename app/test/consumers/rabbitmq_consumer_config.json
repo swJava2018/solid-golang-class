@@ -3,11 +3,11 @@
         "consumer": {
             "name": "rabbitmq",
             "config": {
-                "host": "amqp://guest:guest@localhost:5672/",
+                "host": "amqp://user:bitnami@localhost:5672/",
                 "exchange_name": "local.exchange",
                 "exchange_type": "direct",
-                "queue_name": "earthquake",
-                "routing_key": "earthquake"
+                "queue_name": "mock-data",
+                "routing_key": "mock-data"
             }
         },
         "processors": [

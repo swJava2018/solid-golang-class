@@ -42,6 +42,7 @@ type RabbitMQConsumer struct {
 	stream         chan interface{}
 	errCh          chan error
 	caster         casters.Caster
+	payload        payloads.Payload
 }
 
 // Read implements Consumer
@@ -273,13 +274,20 @@ func (c *RabbitMQConsumer) InitDeliveryChannel() error {
 }
 
 // GetPaylod implements Consumer
-func (*RabbitMQConsumer) GetPaylod() payloads.Payload {
-	panic("unimplemented")
+func (rc *RabbitMQConsumer) GetPaylod() payloads.Payload {
+	if rc.payload == nil {
+		return nil
+	}
+	return rc.payload
 }
 
 // PutPaylod implements Consumer
-func (*RabbitMQConsumer) PutPaylod(p payloads.Payload) error {
-	panic("unimplemented")
+func (rc *RabbitMQConsumer) PutPaylod(p payloads.Payload) error {
+	if p == nil {
+		return errors.New("paylod is nil")
+	}
+	rc.payload = p
+	return nil
 }
 
 // Stream implements Consumer

@@ -17,6 +17,8 @@ func NewPurchasesCaster() Caster {
 
 func CastPurchases(meta jsonObj, message amqp.Delivery) (jsonObj, error) {
 	var record = make(jsonObj)
+
+	//Queue 이름과 같은 메타 정보
 	for k, v := range meta {
 		record[k] = v
 	}
@@ -26,6 +28,12 @@ func CastPurchases(meta jsonObj, message amqp.Delivery) (jsonObj, error) {
 		logger.Errorf("error in casting value object: %v", err)
 		return nil, err
 	}
+
+	//docID를 구성하기 위한 Value 데이터
+	for k, v := range valObj {
+		record[k] = v
+	}
+
 	record["value"] = valObj
 	record["timestamp"] = message.Timestamp
 

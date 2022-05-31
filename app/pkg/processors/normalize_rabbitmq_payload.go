@@ -16,7 +16,7 @@ func init() {
 
 func NewNormalizeRabbitMQPayloadProcessor(config jsonObj) Processor {
 
-	return ProcessorFunc(NormalizeKafkaPayload)
+	return ProcessorFunc(NormalizeRabbitMQPayload)
 }
 
 func NormalizeRabbitMQPayload(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
@@ -27,7 +27,7 @@ func NormalizeRabbitMQPayload(ctx context.Context, p payloads.Payload) (payloads
 	rbbtMQPayload.Index = index
 
 	// 식별자 생성
-	docID := fmt.Sprintf("%s.%s.%v.%s", rbbtMQPayload.Queue)
+	docID := fmt.Sprintf("%s.%v.%s.%s", rbbtMQPayload.Queue, rbbtMQPayload.Id, rbbtMQPayload.Email, rbbtMQPayload.Gender)
 	rbbtMQPayload.DocID = docID
 
 	// 데이터 생성

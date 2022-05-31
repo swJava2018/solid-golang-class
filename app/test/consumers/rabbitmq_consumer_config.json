@@ -10,6 +10,9 @@
         "processors": [
             {
                 "name": "noop"
+            },
+            {
+                "name": "normalize_rabbitmq_payload"
             }
         ],
         "storages": [

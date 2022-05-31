@@ -15,6 +15,12 @@ var (
 )
 
 type RabbitMQPayload struct {
+	Id        int    `json:"id,omitempty"`
+	Email     string `json:"email,omitempty"`
+	Gender    string `json:"gender,omitempty"`
+	FirstName string `json:"first_name,omitempty"`
+	LastName  string `json:"last_name,omitempty"`
+
 	Queue     string                 `json:"queue,omitempty"`
 	Value     map[string]interface{} `json:"value,omitempty"`
 	Timestamp time.Time              `json:"timestamp,omitempty"`

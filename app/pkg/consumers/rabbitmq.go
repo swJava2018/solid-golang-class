@@ -24,8 +24,10 @@ func NewRabbitMQConsumerClient(config jsonObj) Consumer {
 	//TODO: 1주차 과제 솔루션 입니다.
 
 	consumer := rabbitmq.NewRabbitMQConsumer(config)
+	source := sources.NewRabbitMQSource(consumer)
 	client := &RabbitMQConsumerClient{
 		Consumer: consumer,
+		Source:   source,
 	}
 	return client
 }

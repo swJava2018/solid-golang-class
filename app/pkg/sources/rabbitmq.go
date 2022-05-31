@@ -28,12 +28,12 @@ func (rc *RabbitMQSource) Next(ctx context.Context) bool {
 				logger.Errorf("failed to marshall the stream data")
 				return false
 			}
-			var kfkPayload payloads.KafkaPayload
-			err = json.Unmarshal(data, &kfkPayload)
+			var rbbtMQPayload payloads.RabbitMQPayload
+			err = json.Unmarshal(data, &rbbtMQPayload)
 			if err != nil {
 				logger.Errorf(err.Error())
 			}
-			rc.PutPaylod(&kfkPayload)
+			rc.PutPaylod(&rbbtMQPayload)
 			return true
 		// Shutdown
 		case <-ctx.Done():

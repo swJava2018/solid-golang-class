@@ -37,14 +37,6 @@ func (rc *RabbitMQConsumerClient) Init() error {
 	if err != nil {
 		return err
 	}
-	err = rc.DeclareExchange()
-	if err != nil {
-		return err
-	}
-	err = rc.BindQueue()
-	if err != nil {
-		return err
-	}
 	err = rc.InitDeliveryChannel()
 	if err != nil {
 		return err

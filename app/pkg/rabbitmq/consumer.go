@@ -45,6 +45,20 @@ type RabbitMQConsumer struct {
 // Read implements Consumer
 func (rc *RabbitMQConsumer) Read(ctx context.Context) error {
 
+	cast := func(msg amqp.Delivery) jsonObj {
+		var record = make(jsonObj)
+		record["queue"] = rc.config.QueueName
+
+		var valObj jsonObj
+		err := json.Unmarshal(msg.Body, &valObj)
+		if err != nil {
+			logger.Errorf("error in casting value object: %v", err)
+		}
+		record["value"] = valObj
+		record["timestamp"] = msg.Timestamp
+		return record
+	}
+
 	// Check RabbitMQ Connection Error
 	if rc.conn == nil {
 		err := rc.ReConnect()
@@ -53,17 +67,20 @@ func (rc *RabbitMQConsumer) Read(ctx context.Context) error {
 		}
 	}
 
-	var letter amqp.Delivery
-	select {
-	case message := <-rc.message:
-		letter = message
-	case <-rc.ctx.Done():
-		return nil
+	for {
+		select {
+		case <-rc.ctx.Done():
+			logger.Debugf("Context cancelled, shutting down...")
+			return rc.ctx.Err()
+		case msg := <-rc.message:
+			record := cast(msg)
+			data, _ := json.Marshal(record)
+			logger.Debugf("rabbitmq message :%s", string(data))
+			rc.stream <- record
+		default:
+			logger.Debugf("no message coming in...")
+		}
 	}
-	data := string(letter.Body)
-	logger.Debugf("rabbitmq message :%s", data)
-	rc.stream <- data
-	return nil
 }
 
 func NewRabbitMQConsumer(config jsonObj) *RabbitMQConsumer {

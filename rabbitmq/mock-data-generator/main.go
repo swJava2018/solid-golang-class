@@ -7,7 +7,7 @@ import (
 
 func main() {
 	host := flag.String("host", "amqp://user:bitnami@:::5672/", "rabbitmq host you are connecting to")
-	queue := flag.String("queue", "mock-data", "queue name you are publishing data to")
+	queue := flag.String("queue", "purchases", "queue name you are publishing data to")
 	filePath := flag.String("file path of mock json data", "mock_data.json", "data file you are loading to publish")
 
 	flag.Parse()

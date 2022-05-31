@@ -6,6 +6,7 @@ import (
 	"errors"
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
+	"event-data-pipeline/pkg/rabbitmq/casters"
 	"time"
 
 	"github.com/streadway/amqp"
@@ -40,23 +41,20 @@ type RabbitMQConsumer struct {
 	ctx            context.Context
 	stream         chan interface{}
 	errCh          chan error
+	caster         casters.Caster
 }
 
 // Read implements Consumer
 func (rc *RabbitMQConsumer) Read(ctx context.Context) error {
 
-	cast := func(msg amqp.Delivery) jsonObj {
-		var record = make(jsonObj)
-		record["queue"] = rc.config.QueueName
-
-		var valObj jsonObj
-		err := json.Unmarshal(msg.Body, &valObj)
+	cast := func(msg amqp.Delivery) (jsonObj, error) {
+		meta := make(jsonObj)
+		meta["queue"] = rc.config.QueueName
+		record, err := rc.caster.Cast(meta, msg)
 		if err != nil {
-			logger.Errorf("error in casting value object: %v", err)
+			return nil, err
 		}
-		record["value"] = valObj
-		record["timestamp"] = msg.Timestamp
-		return record
+		return record, nil
 	}
 
 	// Check RabbitMQ Connection Error
@@ -73,7 +71,10 @@ func (rc *RabbitMQConsumer) Read(ctx context.Context) error {
 			logger.Debugf("Context cancelled, shutting down...")
 			return rc.ctx.Err()
 		case msg := <-rc.message:
-			record := cast(msg)
+			record, err := cast(msg)
+			if err != nil {
+				logger.Errorf(err.Error())
+			}
 			data, _ := json.Marshal(record)
 			logger.Debugf("rabbitmq message :%s", string(data))
 			rc.stream <- record
@@ -88,7 +89,7 @@ func NewRabbitMQConsumer(config jsonObj) *RabbitMQConsumer {
 	ctx, stream, errch := extractPipeParams(config)
 
 	//consumerOptions
-	rbbtmqCnsmrCfg, ok := config["consumerCfg"].(map[string]interface{})
+	rbbtmqCnsmrCfg, ok := config["consumerCfg"].(jsonObj)
 	if !ok {
 		logger.Panicf("no consumer options provided")
 	}
@@ -104,12 +105,19 @@ func NewRabbitMQConsumer(config jsonObj) *RabbitMQConsumer {
 		logger.Panicf("error in loading rabbitmq configuration: %v", err)
 		return nil
 	}
+	casterName := cfg.QueueName + casters.CASTER_SUFFIX
+	castFunc, err := casters.CreateCaster(casterName)
+	if err != nil {
+		logger.Panicf("error in loading caster function: %v", err)
+		return nil
+	}
 
 	c := &RabbitMQConsumer{
 		config: &cfg,
 		ctx:    ctx,
 		stream: stream,
 		errCh:  errch,
+		caster: castFunc,
 	}
 	return c
 }

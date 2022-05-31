@@ -1,3 +1,3 @@
 package event_data
 
-type jsonObj map[string]interface{}
+type jsonObj = map[string]interface{}

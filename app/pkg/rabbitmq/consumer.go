@@ -262,7 +262,7 @@ func (rc *RabbitMQConsumer) Stream() chan interface{} {
 }
 
 func extractPipeParams(config jsonObj) (context.Context, chan interface{}, chan error) {
-	pipeParams, ok := config["pipeParams"].(map[string]interface{})
+	pipeParams, ok := config["pipeParams"].(jsonObj)
 	if !ok {
 		logger.Panicf("no pipeParams provided")
 	}

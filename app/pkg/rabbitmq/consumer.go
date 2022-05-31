@@ -80,6 +80,7 @@ func (rc *RabbitMQConsumer) Read(ctx context.Context) error {
 			rc.stream <- record
 		default:
 			logger.Debugf("no message coming in...")
+			time.Sleep(1 * time.Second)
 		}
 	}
 }

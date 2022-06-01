@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/processors"
 
 	"golang.org/x/xerrors"
@@ -20,10 +21,12 @@ func FIFO(proc processors.Processor) StageRunner {
 
 // Run implements StageRunner.
 func (r fifo) Run(ctx context.Context, params StageParams) {
+	defer func() {
+		logger.Debugf("shutting down fifo run...")
+	}()
 	for {
 		select {
 		case <-ctx.Done():
-			// Asked to cleanly shut down
 			return
 		case payloadIn, ok := <-params.Input():
 			if !ok {
@@ -48,7 +51,6 @@ func (r fifo) Run(ctx context.Context, params StageParams) {
 			select {
 			case params.Output() <- payloadOut:
 			case <-ctx.Done():
-				// Asked to cleanly shut down
 				return
 			}
 		}

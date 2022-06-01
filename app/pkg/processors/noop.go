@@ -28,6 +28,9 @@ func NewNoopProcessor(config jsonObj) Processor {
 // 프로세서 인스턴스의 Process 메소드 구현으로 Duck Typing
 func (n *NoopProcessor) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
 	logger.Debugf("Processing %v", p)
-	n.Validate(ctx, p)
+	err := n.Validate(ctx, p)
+	if err != nil {
+		return nil, err
+	}
 	return p, nil
 }

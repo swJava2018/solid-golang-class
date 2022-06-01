@@ -12,10 +12,10 @@ var _ Processor = new(ProcessorFunc)
 var _ ProcessorFunc = NormalizeKafkaPayload
 
 func init() {
-	Register("normalize_kafka_payload", NewNormalizeKafkaPayloadProcessor)
+	Register("kafka_normalizer", NewKafkaNormalizer)
 }
 
-func NewNormalizeKafkaPayloadProcessor(config jsonObj) Processor {
+func NewKafkaNormalizer(config jsonObj) Processor {
 
 	return ProcessorFunc(NormalizeKafkaPayload)
 }

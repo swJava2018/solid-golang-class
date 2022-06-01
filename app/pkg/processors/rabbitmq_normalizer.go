@@ -11,7 +11,7 @@ var _ Processor = new(ProcessorFunc)
 var _ ProcessorFunc = NormalizeKafkaPayload
 
 func init() {
-	Register("normalize_rabbitmq_payload", NewNormalizeRabbitMQPayloadProcessor)
+	Register("rabbitmq_normalizer", NewNormalizeRabbitMQPayloadProcessor)
 }
 
 func NewNormalizeRabbitMQPayloadProcessor(config jsonObj) Processor {

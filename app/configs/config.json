@@ -21,10 +21,10 @@
         },
         "processors": [
             {
-                "name": "noop"
+                "name": "kafka_default_processor"
             },
             {
-                "name": "normalize_kafka_payload"
+                "name": "kafka_normalizer"
             }
         ],
         "storages": [

@@ -45,22 +45,15 @@ func CreateProcessor(name string, config jsonObj) (Processor, error) {
 	return factory(config), nil
 }
 
-// Processor is implemented by types that can process Payloads as part of a
-// pipeline stage.
+// 모든 프로세서는 본 인터페이스를 구현해야함.
 type Processor interface {
-	// Process operates on the input payload and returns back a new payload
-	// to be forwarded to the next pipeline stage. Processors may also opt
-	// to prevent the payload from reaching the rest of the pipeline by
-	// returning a nil payload value instead.
 	Process(context.Context, payloads.Payload) (payloads.Payload, error)
 }
 
-// ProcessorFunc is an adapter to allow the use of plain functions as Processor
-// instances. If f is a function with the appropriate signature, ProcessorFunc(f)
-// is a Processor that calls f.
+// 일반 func 를 프로세서 인터페이스 타입으로 사용할 수 있도록 도와주는 ProcessorFunc 타입
 type ProcessorFunc func(context.Context, payloads.Payload) (payloads.Payload, error)
 
-// Process calls f(ctx, p).
+// ProcessorFunc 를 Processor 인터페이스를 구현하도록 도와주는 Process 메소드
 func (f ProcessorFunc) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
 	return f(ctx, p)
 }

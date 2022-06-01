@@ -21,7 +21,7 @@
         },
         "processors": [
             {
-                "name": "kafka_default_processor"
+                "name": "kafka_default"
             },
             {
                 "name": "kafka_normalizer"

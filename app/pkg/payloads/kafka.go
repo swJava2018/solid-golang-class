@@ -42,5 +42,16 @@ func (kp *KafkaPayload) Out() (string, string, []byte) {
 // MarkAsProcessed implements pipeline.Payload
 func (p *KafkaPayload) MarkAsProcessed() {
 
+	p.Topic = ""
+	p.Partition = 0
+	p.Offset = 0
+	p.Key = ""
+	p.Value = nil
+	p.Timestamp = time.Time{}
+
+	p.DocID = ""
+	p.Index = ""
+	p.Data = nil
+
 	kafkaPayloadPool.Put(p)
 }

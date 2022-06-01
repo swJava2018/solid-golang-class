@@ -51,7 +51,7 @@ func (p *RabbitMQPayload) MarkAsProcessed() {
 	p.FirstName = ""
 	p.Queue = ""
 	p.Value = nil
-	p.Timestamp = time.Now()
+	p.Timestamp = time.Time{}
 
 	p.DocID = ""
 	p.Index = ""

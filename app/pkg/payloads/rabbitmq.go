@@ -44,6 +44,18 @@ func (kp *RabbitMQPayload) Out() (string, string, []byte) {
 
 // MarkAsProcessed implements pipeline.Payload
 func (p *RabbitMQPayload) MarkAsProcessed() {
+	p.Id = 0
+	p.Email = ""
+	p.Gender = ""
+	p.LastName = ""
+	p.FirstName = ""
+	p.Queue = ""
+	p.Value = nil
+	p.Timestamp = time.Now()
+
+	p.DocID = ""
+	p.Index = ""
+	p.Data = nil
 
 	rabbitMQPayloadPool.Put(p)
 }

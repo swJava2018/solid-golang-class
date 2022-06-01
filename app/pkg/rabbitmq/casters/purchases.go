@@ -36,6 +36,5 @@ func CastPurchases(meta jsonObj, message amqp.Delivery) (jsonObj, error) {
 
 	record["value"] = valObj
 	record["timestamp"] = message.Timestamp
-
 	return record, nil
 }

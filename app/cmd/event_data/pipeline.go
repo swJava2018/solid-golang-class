@@ -120,6 +120,8 @@ func (e *EventDataPipeline) Run() error {
 		// 컨슈머로 부터 데이터를 받아 처리하는 0개 이상의 프로세서 슬라이스 초기화
 		proccers := make([]processors.Processor, len(cfg.Processors))
 		for i, p := range cfg.Processors {
+
+			// 부여된 설정값 대로 프로세서 생성
 			processor, err := processors.CreateProcessor(p.Name, p.Config)
 			if err != nil {
 				return err

@@ -5,6 +5,7 @@ import (
 	"event-data-pipeline/pkg/payloads"
 )
 
+// 컴파일 타임 인터페이스 타입 체크
 var _ Processor = new(RabbitMQDefaultProcessor)
 
 func init() {

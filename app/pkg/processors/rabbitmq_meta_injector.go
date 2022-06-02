@@ -10,6 +10,7 @@ func init() {
 }
 
 type RabbitMQMetaInjector struct {
+	// TODO: 2주차 과제입니다.
 }
 
 func NewRabbitMQMetaInjector(config jsonObj) Processor {

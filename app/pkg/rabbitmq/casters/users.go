@@ -8,14 +8,14 @@ import (
 )
 
 func init() {
-	Register("purchases_caster", NewPurchasesCaster)
+	Register("users_caster", NewUsersCaster)
 }
 
-func NewPurchasesCaster() Caster {
-	return CasterFunc(CastPurchases)
+func NewUsersCaster() Caster {
+	return CasterFunc(CastUsers)
 }
 
-func CastPurchases(meta jsonObj, message amqp.Delivery) (jsonObj, error) {
+func CastUsers(meta jsonObj, message amqp.Delivery) (jsonObj, error) {
 	var record = make(jsonObj)
 
 	//Queue 이름과 같은 메타 정보

@@ -24,12 +24,12 @@ func NewKafkaDefaultProcessor(config jsonObj) Processor {
 }
 
 func (k *KafkaDefaultProcessor) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
-	//Validator struct embedding
+	//Validator method
 	err := k.Validate(ctx, p)
 	if err != nil {
 		return nil, err
 	}
-	//KafkaMetaInject struct embedding
+	//KafkaMetaInject method forwarding
 	p, err = k.KafkaMetaInjector.Process(ctx, p)
 	if err != nil {
 		return nil, err

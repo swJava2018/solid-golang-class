@@ -2,6 +2,7 @@ package consumers
 
 import (
 	"context"
+	"encoding/json"
 	"event-data-pipeline/pkg/cli"
 	"event-data-pipeline/pkg/config"
 	"event-data-pipeline/pkg/logger"
@@ -15,7 +16,7 @@ import (
 func TestRabbitMQConsumerClient_Consume(t *testing.T) {
 	//TODO: 1주차 과제 솔루션 입니다.
 	configPath := getCurDir() + "/test/consumers/rabbitmq_consumer_config.json"
-	os.Setenv("EDP_ENABLE_DEBUG_LOGGING", "true")
+	os.Setenv("EDP_ENABLE_DEBUG_LOGGING", "false")
 	os.Setenv("EDP_CONFIG", configPath)
 	os.Args = nil
 	arg.MustParse(&cli.Args)
@@ -55,8 +56,12 @@ func TestRabbitMQConsumerClient_Consume(t *testing.T) {
 
 	for {
 		select {
-		case data := <-stream:
-			t.Logf("data: %v", data)
+		case msg := <-stream:
+			data, err := json.MarshalIndent(msg, "", " ")
+			if err != nil {
+				t.Error(err)
+			}
+			t.Logf("data: %s", string(data))
 			return
 		case err := <-errCh:
 			t.Logf("err: %v", err)

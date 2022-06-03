@@ -16,13 +16,12 @@ var _ Consumer = new(RabbitMQConsumer)
 
 type Consumer interface {
 	CreateConsumer() error
+	QueueDeclare() error
 	Read(ctx context.Context) error
 	Connect() error
 	CreateChannel() error
 	Delete() error
 	ReConnect() error
-	DeclareExchange() error
-	BindQueue() error
 	InitDeliveryChannel() error
 
 	//Source 구현체에서 필요한 인터페이스
@@ -210,22 +209,6 @@ func (c *RabbitMQConsumer) ReConnect() error {
 
 }
 
-func (c *RabbitMQConsumer) DeclareExchange() error {
-
-	err := c.ch.ExchangeDeclare(
-		c.config.ExchangeName, // name
-		c.config.ExchangeType, // type
-		true,                  // durable
-		false,                 // auto-deleted
-		false,                 // internal
-		false,                 // no-wait
-		nil,                   // arguments
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 func (c *RabbitMQConsumer) QueueDeclare() error {
 	q, err := c.ch.QueueDeclare(
 		c.config.QueueName, // name
@@ -236,20 +219,6 @@ func (c *RabbitMQConsumer) QueueDeclare() error {
 		nil,                // arguments
 	)
 	c.q = q
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c *RabbitMQConsumer) BindQueue() error {
-	err := c.ch.QueueBind(
-		c.config.QueueName,    // queue name
-		c.config.RoutingKey,   // routing key
-		c.config.ExchangeName, // exchange
-		false,
-		nil,
-	)
 	if err != nil {
 		return err
 	}

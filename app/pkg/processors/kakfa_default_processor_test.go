@@ -2,6 +2,7 @@ package processors_test
 
 import (
 	"context"
+	"encoding/json"
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
 	"event-data-pipeline/pkg/pipelines"
@@ -80,8 +81,9 @@ func TestKafkaDefaultProcessor_Process(t *testing.T) {
 					}
 					cancelFunc()
 					return
-				case data := <-stageCh[1]:
-					t.Log(data)
+				case msg := <-stageCh[1]:
+					data, _ := json.MarshalIndent(msg, "", " ")
+					t.Log(string(data))
 					cancelFunc()
 					return
 				}

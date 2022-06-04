@@ -16,6 +16,7 @@ func init() {
 
 // 프로세서 타입 정의
 type NoopProcessor struct {
+	//struct embedding
 	Validator
 }
 

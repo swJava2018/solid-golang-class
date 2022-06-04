@@ -89,7 +89,7 @@ func NewRabbitMQConsumer(config jsonObj) *RabbitMQConsumer {
 	//context, stream, errch 추출
 	ctx, stream, errch := extractPipeParams(config)
 
-	//consumerOptions
+	//consumerCfg
 	rbbtmqCnsmrCfg, ok := config["consumerCfg"].(jsonObj)
 	if !ok {
 		logger.Panicf("no consumer options provided")

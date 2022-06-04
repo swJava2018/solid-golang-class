@@ -40,7 +40,7 @@ func TestNoopProcessor_Process(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			// 스테이지 러너 생성
+			// 스테이지 러너 생성 1개
 			fifo := pipelines.FIFO(np)
 
 			// 파라미터 생성

@@ -16,10 +16,6 @@ type RabbitMQDefaultProcessor struct {
 	// TODO: 2주차 과제입니다.
 }
 
-func init() {
-	// TODO: 2주차 과제입니다.
-}
-
 func NewRabbitMQDefaultProcessor(config jsonObj) Processor {
 	// TODO: 2주차 과제입니다.
 	return nil

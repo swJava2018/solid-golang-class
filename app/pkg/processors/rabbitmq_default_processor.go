@@ -9,20 +9,35 @@ import (
 var _ Processor = new(RabbitMQDefaultProcessor)
 
 func init() {
-	// TODO: 2주차 과제입니다.
+	// TODO: 2주차 솔루션입니다.
+	Register("rabbitmq_default", NewRabbitMQDefaultProcessor)
+
 }
 
 type RabbitMQDefaultProcessor struct {
-	// TODO: 2주차 과제입니다.
+	// TODO: 2주차 솔루션입니다.
+	Validator
+	RabbitMQMetaInjector
 }
 
 func NewRabbitMQDefaultProcessor(config jsonObj) Processor {
-	// TODO: 2주차 과제입니다.
-	return nil
+	// TODO: 2주차 솔루션입니다.
+	p := &RabbitMQDefaultProcessor{
+		Validator{},
+		RabbitMQMetaInjector{},
+	}
+	return p
 }
 
 func (k *RabbitMQDefaultProcessor) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
-	// TODO: 2주차 과제입니다.
-
+	// TODO: 2주차 솔루션입니다.
+	err := k.Validate(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+	p, err = k.RabbitMQMetaInjector.Process(ctx, p)
+	if err != nil {
+		return nil, err
+	}
 	return p, nil
 }

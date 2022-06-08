@@ -47,15 +47,6 @@ type FilesystemClient struct {
 	rateLimiter *rate.Limiter
 }
 
-// Drain implements pipelines.Sink
-func (f *FilesystemClient) Drain(ctx context.Context, p payloads.Payload) error {
-	// 페이로드를 받아서
-	logger.Debugf("sending payload to worker input channel...")
-	f.inCh <- p
-	logger.Debugf("payload to worker input channel...")
-	return nil
-}
-
 func NewFilesystemClient(config jsonObj) StorageProvider {
 	var fsc FsCfg
 	// 바이트로 변환
@@ -73,7 +64,7 @@ func NewFilesystemClient(config jsonObj) StorageProvider {
 		ticker: time.NewTicker(300000 * time.Millisecond),
 		count:  0,
 		//TODO: 설정으로부터 가져올것.
-		rateLimiter: ratelimit.NewRateLimiter(*&ratelimit.RateLimit{Limit: 10, Burst: 0}),
+		rateLimiter: ratelimit.NewRateLimiter(ratelimit.RateLimit{Limit: 10, Burst: 0}),
 	}
 
 	fc.workers = concur.NewWorkerPool("filesystem-workers", fc.inCh, 1, fc.Write)
@@ -127,4 +118,13 @@ func (f *FilesystemClient) Write(payload interface{}) (int, error) {
 		}
 	}
 	return 0, errors.New("payload is nil")
+}
+
+// Drain implements pipelines.Sink
+func (f *FilesystemClient) Drain(ctx context.Context, p payloads.Payload) error {
+	// 페이로드를 받아서
+	logger.Debugf("sending payload to worker input channel...")
+	f.inCh <- p
+	logger.Debugf("payload to worker input channel...")
+	return nil
 }

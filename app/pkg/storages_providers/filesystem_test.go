@@ -23,18 +23,16 @@ func (f *FilesystemSuite) SetUpSuite(c *gc.C) {
 	os.Args = nil
 	os.Setenv("EDP_ENABLE_DEBUG_LOGGING", "true")
 	logger.Setup()
-}
 
-func (f *FilesystemSuite) SetUpTest(c *gc.C) {
-	fmt.Println("setup test")
-}
-func (f *FilesystemSuite) TearDownTest(c *gc.C) {
-	fmt.Println("tear down test")
+	fmt.Println("Setting up suite: clearing fs directory...")
+	err := os.RemoveAll("fs")
+	c.Assert(err, gc.IsNil)
 }
 func (f *FilesystemSuite) TearDownSuite(c *gc.C) {
-	fmt.Println("tear down suit")
+	fmt.Println("Tearind down the suit : clearing fs directory...")
+	err := os.RemoveAll("fs")
+	c.Assert(err, gc.IsNil)
 }
-
 func (f *FilesystemSuite) TestWrite(c *gc.C) {
 
 	// filesystem config 오브젝트 생성
@@ -48,9 +46,17 @@ func (f *FilesystemSuite) TestWrite(c *gc.C) {
 	c.Assert(err, gc.IsNil)
 
 	// 페이로드 stub 생성
-	payload := &payloadStub{0, "event-data-test"}
+	payload := &payloadStub{"event-data-test", fmt.Sprintf("filesystem.write.test.%d", 0)}
 
 	filesystem.Write(payload)
+
+	dirs, err := os.ReadDir("fs/event-data-test")
+	c.Assert(err, gc.IsNil)
+
+	for _, dir := range dirs {
+		c.Assert("filesystem.write.test.0", gc.Equals, dir.Name())
+	}
+
 }
 
 func (f *FilesystemSuite) TestConcurrentWrite(c *gc.C) {
@@ -76,12 +82,19 @@ func (f *FilesystemSuite) TestConcurrentWrite(c *gc.C) {
 		wg.Add(1)
 		go func(idx int, wg *sync.WaitGroup) {
 			// 페이로드 stub 생성
-			payload := &payloadStub{idx, "event-data-test-concurrent"}
+			payload := &payloadStub{"event-data-test-concurrent", fmt.Sprintf("filesystem.write.test.%d", idx)}
 			filesystem.Write(payload)
 			wg.Done()
 		}(i, &wg)
 	}
 	wg.Wait()
+
+	dirs, err := os.ReadDir("fs/event-data-test-concurrent")
+	c.Assert(err, gc.IsNil)
+
+	for idx, dir := range dirs {
+		c.Assert(fmt.Sprintf("filesystem.write.test.%d", idx), gc.Equals, dir.Name())
+	}
 }
 
 type jsonObj = map[string]interface{}
@@ -89,8 +102,8 @@ type jsonObj = map[string]interface{}
 var _ payloads.Payload = new(payloadStub)
 
 type payloadStub struct {
-	idx int
-	dir string
+	dir      string
+	filename string
 }
 
 // Clone implements payloads.Payload
@@ -106,5 +119,5 @@ func (*payloadStub) MarkAsProcessed() {
 
 // Out implements payloads.Payload
 func (p *payloadStub) Out() (string, string, []byte) {
-	return p.dir, fmt.Sprintf("filesystem.storage_provider.test.%v", p.idx), []byte(`{}`)
+	return p.dir, p.filename, []byte(`{}`)
 }

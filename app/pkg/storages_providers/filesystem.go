@@ -31,19 +31,12 @@ type FsCfg struct {
 }
 
 type FilesystemClient struct {
-	RootDir string
-	file    fs.File
-	count   int
-	record  chan interface{}
-	mu      sync.Mutex
-	ticker  *time.Ticker
-	done    chan bool
-
-	workers *concur.WorkerPool
-
-	// 소스나 프로세서로 부터 데이터를 넘겨 받는 인풋 채널.
-	inCh chan interface{}
-
+	RootDir     string
+	file        fs.File
+	count       int
+	mu          sync.Mutex
+	workers     *concur.WorkerPool
+	inCh        chan interface{}
 	rateLimiter *rate.Limiter
 }
 
@@ -56,14 +49,9 @@ func NewFilesystemClient(config jsonObj) StorageProvider {
 	json.Unmarshal(cfgByte, &fsc)
 
 	fc := &FilesystemClient{
-		RootDir: fsc.Path,
-
-		inCh:   make(chan interface{}),
-		record: make(chan interface{}),
-		done:   make(chan bool),
-		ticker: time.NewTicker(300000 * time.Millisecond),
-		count:  0,
-		//TODO: 설정으로부터 가져올것.
+		RootDir:     fsc.Path,
+		inCh:        make(chan interface{}),
+		count:       0,
 		rateLimiter: ratelimit.NewRateLimiter(ratelimit.RateLimit{Limit: 10, Burst: 0}),
 	}
 
@@ -92,9 +80,7 @@ func (f *FilesystemClient) Write(payload interface{}) (int, error) {
 			f.rateLimiter.Wait(ctx)
 			logger.Debugf("rate limited for %f seconds", time.Since(startWait).Seconds())
 
-			//TODO:: 리트라이 리밋 설정값으로부터 가져올것.
 			limit := 1
-
 			defer func() {
 				if err := recover(); err != nil {
 					logger.Println("Write to file failed:", err)
@@ -113,7 +99,6 @@ func (f *FilesystemClient) Write(payload interface{}) (int, error) {
 			if limit >= 0 && retry >= limit {
 				return 0, err
 			}
-			//TODO:: 딜레이 설정 값으로부터 가져올 것.
 			time.Sleep(time.Duration(5) * time.Second)
 		}
 	}

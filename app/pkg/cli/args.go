@@ -2,7 +2,7 @@ package cli
 
 var Args struct {
 	LoggingToFileEnabled bool   `arg:"env:EDP_ENABLE_LOGGING_TO_FILE,-l,--logToFile" default:"false" help:"Enable logging to file"`
-	LogfilePath          string `arg:"env:EDP_LOGFILE_PATH,-f,--logfilePath" default:"logs/event-log-collector.log" help:"Location and name of file to log to"`
+	LogfilePath          string `arg:"env:EDP_LOGFILE_PATH,-f,--logfilePath" default:"logs/event-data-processor.log" help:"Location and name of file to log to"`
 	DebugEnabled         bool   `arg:"env:EDP_ENABLE_DEBUG_LOGGING,-d,--debug" help:"Specify this flag to enable debug logging level"`
 	Config               string `arg:"env:EDP_CONFIG,-c,--config" default:"configs/" help:"Path to event logger configs. Can be either a directory or specific json config file"`
 

@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/alexflint/go-arg v1.4.3
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
+	github.com/elastic/go-elasticsearch/v8 v8.2.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/json-iterator/go v1.1.12
 	github.com/natefinch/lumberjack v2.0.0+incompatible
@@ -16,6 +17,7 @@ require (
 )
 
 require (
+	github.com/elastic/elastic-transport-go/v8 v8.1.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/kr/text v0.1.0 // indirect

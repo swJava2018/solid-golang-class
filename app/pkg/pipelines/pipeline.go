@@ -5,7 +5,7 @@ import (
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
 	"event-data-pipeline/pkg/sources"
-	"event-data-pipeline/pkg/storages_providers"
+	"event-data-pipeline/pkg/storage_providers"
 
 	"sync"
 
@@ -35,7 +35,7 @@ func New(stages ...StageRunner) *Pipeline {
 //  - the supplied context expires
 //
 // It is safe to call Process concurrently with different sources and sinks.
-func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sources.Source, storageProviders []storages_providers.StorageProvider) error {
+func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sources.Source, storageProviders []storage_providers.StorageProvider) error {
 	pCtx, ctxCancelFn := context.WithCancel(ctx)
 
 	// Allocate channels for wiring together the source, the pipeline stages
@@ -78,7 +78,7 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sourc
 
 	for _, s := range storageProviders {
 		wg.Add(1)
-		go func(s storages_providers.StorageProvider) {
+		go func(s storage_providers.StorageProvider) {
 			sink := s.(Sink)
 			sinkWorker(pCtx, sink, stageCh[len(stageCh)-1], errCh)
 			wg.Done()

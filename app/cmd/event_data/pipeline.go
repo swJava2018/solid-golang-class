@@ -10,7 +10,8 @@ import (
 	"event-data-pipeline/pkg/pipelines"
 	"event-data-pipeline/pkg/processors"
 	"event-data-pipeline/pkg/sources"
-	"event-data-pipeline/pkg/storages_providers"
+	"event-data-pipeline/pkg/storage_providers"
+
 	"sync"
 )
 
@@ -140,10 +141,10 @@ func (e *EventDataPipeline) Run() error {
 		}
 
 		// 스토리지 프로바이더 생성
-		storageProviders := make([]storages_providers.StorageProvider, len(cfg.Storages))
+		storageProviders := make([]storage_providers.StorageProvider, len(cfg.Storages))
 		for i, s := range cfg.Storages {
 			logger.Debugf("storage[%d]: %v", i, s.Type)
-			storageProviders[i], err = storages_providers.CreateStorageProvider(s.Type, s.Config)
+			storageProviders[i], err = storage_providers.CreateStorageProvider(s.Type, s.Config)
 			if err != nil {
 				logger.Errorf("%v", err)
 				return err

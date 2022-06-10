@@ -28,26 +28,26 @@ func (e *ESSuite) TearDownSuite(c *gc.C) {
 
 }
 
-// func (f *ESSuite) TestWrite(c *gc.C) {
+func (f *ESSuite) TestWrite(c *gc.C) {
 
-// 	cfgObj := make(jsonObj)
-// 	addresses := &[]interface{}{"http://localhost:9200"}
-// 	cfgObj["addresses"] = addresses
+	cfgObj := make(jsonObj)
+	addresses := &[]interface{}{"http://localhost:9200"}
+	cfgObj["addresses"] = addresses
 
-// 	// ES storage provider 인스턴스 생성
-// 	es, err := storage_providers.CreateStorageProvider("elasticsearch", cfgObj)
+	// ES storage provider 인스턴스 생성
+	es, err := storage_providers.CreateStorageProvider("elasticsearch", cfgObj)
 
-// 	// 에러 체크
-// 	c.Assert(err, gc.IsNil)
+	// 에러 체크
+	c.Assert(err, gc.IsNil)
 
-// 	// 페이로드 stub 생성
-// 	payload := &esPayloadStub{"event-data-test", fmt.Sprintf("es.write.test.%d", 0)}
+	// 페이로드 stub 생성
+	payload := &esPayloadStub{"event-data-test", fmt.Sprintf("es.write.test.%d", 0)}
 
-// 	written, err := es.Write(payload)
-// 	c.Assert(written, gc.NotNil)
-// 	c.Assert(err, gc.IsNil)
+	written, err := es.Write(payload)
+	c.Assert(written, gc.NotNil)
+	c.Assert(err, gc.IsNil)
 
-// }
+}
 
 func (f *ESSuite) TestConcurrentWrite(c *gc.C) {
 

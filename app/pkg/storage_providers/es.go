@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"event-data-pipeline/pkg/concur"
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
@@ -89,39 +90,42 @@ func (e *ElasticSearchClient) Drain(ctx context.Context, p payloads.Payload) err
 
 func (e *ElasticSearchClient) Write(payload interface{}) (int, error) {
 
-	index, docID, data := payload.(payloads.Payload).Out()
+	if payload != nil {
+		index, docID, data := payload.(payloads.Payload).Out()
 
-	// 락 가져오기
-	e.mu.Lock()
-	defer e.mu.Unlock()
+		// 락 가져오기
+		e.mu.Lock()
+		defer e.mu.Unlock()
 
-	// documentID 메타정보 오브젝트 생성
-	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%v" } }%s`, docID, "\n"))
+		// documentID 메타정보 오브젝트 생성
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%v" } }%s`, docID, "\n"))
 
-	// bulk write 을 위한 개행
-	data = append(data, "\n"...)
+		// bulk write 을 위한 개행
+		data = append(data, "\n"...)
 
-	// 메타, 데이타 오브젝트 사이즈 버퍼 할당
-	e.buf.Grow(len(meta) + len(data))
+		// 메타, 데이타 오브젝트 사이즈 버퍼 할당
+		e.buf.Grow(len(meta) + len(data))
 
-	// 메타 정보 쓰기
-	e.buf.Write(meta)
+		// 메타 정보 쓰기
+		e.buf.Write(meta)
 
-	// 데이터 정보 쓰기
-	e.buf.Write(data)
+		// 데이터 정보 쓰기
+		e.buf.Write(data)
 
-	// 로컬 데이터 카피
-	buf := e.buf.Bytes()
+		// 로컬 데이터 카피
+		buf := e.buf.Bytes()
 
-	// 버퍼 초기화
-	e.buf.Reset()
+		// 버퍼 초기화
+		e.buf.Reset()
 
-	// 벌크라이트
-	written, err := e.bulkWrite(index, buf)
-	if err != nil {
-		return 0, nil
+		// 벌크라이트
+		written, err := e.bulkWrite(index, buf)
+		if err != nil {
+			return 0, nil
+		}
+		return written, nil
 	}
-	return written, nil
+	return 0, errors.New("payload is nil")
 }
 
 func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) {

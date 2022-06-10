@@ -31,6 +31,16 @@ type KafkaPayload struct {
 func (kp *KafkaPayload) Clone() Payload {
 	newP := kafkaPayloadPool.Get().(*KafkaPayload)
 
+	newP.Topic = kp.Topic
+	newP.Partition = kp.Partition
+	newP.Offset = kp.Offset
+	newP.Key = kp.Key
+	newP.Value = kp.Value
+
+	newP.Index = kp.Index
+	newP.DocID = kp.DocID
+	newP.Data = kp.Data
+
 	return newP
 }
 

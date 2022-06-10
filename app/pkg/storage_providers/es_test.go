@@ -1,6 +1,7 @@
 package storage_providers_test
 
 import (
+	"encoding/json"
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
 	"event-data-pipeline/pkg/storage_providers"
@@ -40,8 +41,11 @@ func (f *ESSuite) TestWrite(c *gc.C) {
 	// 에러 체크
 	c.Assert(err, gc.IsNil)
 
+	data := make(map[string]interface{})
+	data["id"] = 0
+	json, _ := json.Marshal(data)
 	// 페이로드 stub 생성
-	payload := &esPayloadStub{"event-data-test", fmt.Sprintf("es.write.test.%d", 0)}
+	payload := &esPayloadStub{"event-data-test", fmt.Sprintf("es.write.test.%d", 0), json}
 
 	written, err := es.Write(payload)
 	c.Assert(written, gc.NotNil)
@@ -62,7 +66,7 @@ func (f *ESSuite) TestConcurrentWrite(c *gc.C) {
 	c.Assert(err, gc.IsNil)
 
 	// 동시 트린잭션 개수
-	requests := 100
+	requests := 1000
 
 	// WaitGroup 생성
 	var wg sync.WaitGroup
@@ -70,20 +74,21 @@ func (f *ESSuite) TestConcurrentWrite(c *gc.C) {
 	// 고루틴 생성
 	for i := 0; i < requests; i++ {
 		wg.Add(1)
-		go func(idx int, wg *sync.WaitGroup) {
+		go func(idx int) {
+			defer wg.Done()
+			data := make(map[string]interface{})
+			data["id"] = idx
+			json, _ := json.Marshal(data)
 			// 페이로드 stub 생성
-			payload := &esPayloadStub{"event-data-test-concurrent", fmt.Sprintf("es.write.test.%d", idx)}
-			logger.Infof("payload:%v", payload)
-			written, err := es.Write(payload)
+			payload := &esPayloadStub{"event-data-test-concurrent", fmt.Sprintf("es.write.test.%d", idx), json}
+			c.Logf("payload: %v", payload)
+			_, err := es.Write(payload)
 			c.Assert(err, gc.IsNil)
-			if written <= 0 {
-				c.Errorf("failed to write:%s", payload)
-			}
-			wg.Done()
-		}(i, &wg)
+		}(i)
 	}
+	c.Logf("waiting...")
 	wg.Wait()
-
+	c.Logf("completed...")
 }
 
 var _ payloads.Payload = new(esPayloadStub)
@@ -91,11 +96,12 @@ var _ payloads.Payload = new(esPayloadStub)
 type esPayloadStub struct {
 	index string
 	docID string
+	data  []byte
 }
 
 // Clone implements payloads.Payload
-func (*esPayloadStub) Clone() payloads.Payload {
-	ps := &esPayloadStub{}
+func (p *esPayloadStub) Clone() payloads.Payload {
+	ps := &esPayloadStub{p.index, p.docID, p.data}
 	return ps
 }
 
@@ -106,5 +112,5 @@ func (*esPayloadStub) MarkAsProcessed() {
 
 // Out implements payloads.Payload
 func (p *esPayloadStub) Out() (string, string, []byte) {
-	return p.index, p.docID, []byte(`{}`)
+	return p.index, p.docID, p.data
 }

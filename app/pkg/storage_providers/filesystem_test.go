@@ -47,7 +47,7 @@ func (f *FilesystemSuite) TestWrite(c *gc.C) {
 	c.Assert(err, gc.IsNil)
 
 	// 페이로드 stub 생성
-	payload := &esPayloadStub{"event-data-test", fmt.Sprintf("filesystem.write.test.%d", 0)}
+	payload := &fsPayloadStub{"event-data-test", fmt.Sprintf("filesystem.write.test.%d", 0)}
 
 	filesystem.Write(payload)
 
@@ -83,7 +83,7 @@ func (f *FilesystemSuite) TestConcurrentWrite(c *gc.C) {
 		wg.Add(1)
 		go func(idx int, wg *sync.WaitGroup) {
 			// 페이로드 stub 생성
-			payload := &esPayloadStub{"event-data-test-concurrent", fmt.Sprintf("filesystem.write.test.%d", idx)}
+			payload := &fsPayloadStub{"event-data-test-concurrent", fmt.Sprintf("filesystem.write.test.%d", idx)}
 			filesystem.Write(payload)
 			wg.Done()
 		}(i, &wg)

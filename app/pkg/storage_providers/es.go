@@ -29,11 +29,11 @@ type ElasticSearchClientConfig struct {
 type ElasticSearchClient struct {
 	client       *es.Client
 	DocumentType string
-	index        string
 	Refresh      bool
 
-	buf bytes.Buffer
-	mu  sync.Mutex
+	buf   bytes.Buffer
+	mu    sync.Mutex
+	count int
 
 	workers *concur.WorkerPool
 	inCh    chan interface{}
@@ -89,43 +89,53 @@ func (e *ElasticSearchClient) Drain(ctx context.Context, p payloads.Payload) err
 }
 
 func (e *ElasticSearchClient) Write(payload interface{}) (int, error) {
+	if payload == nil {
+		return 0, errors.New("payload is nil")
+	}
+	// 페이로드 가져오기
+	index, docID, data := payload.(payloads.Payload).Out()
+	if index == "" || docID == "" || len(data) == 0 {
+		return 0, errors.New("payload is nil")
+	}
+	// 락 가져오기
+	e.mu.Lock()
+	defer e.mu.Unlock()
 
-	if payload != nil {
-		index, docID, data := payload.(payloads.Payload).Out()
+	// documentID 메타정보 오브젝트 생성
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%v" } }%s`, docID, "\n"))
 
-		// 락 가져오기
-		e.mu.Lock()
-		defer e.mu.Unlock()
+	// bulk write 을 위한 개행
+	data = append(data, "\n"...)
 
-		// documentID 메타정보 오브젝트 생성
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%v" } }%s`, docID, "\n"))
+	// 카운터
+	e.count++
 
-		// bulk write 을 위한 개행
-		data = append(data, "\n"...)
+	// 메타, 데이타 오브젝트 사이즈 버퍼 할당
+	e.buf.Grow(len(meta) + len(data))
 
-		// 메타, 데이타 오브젝트 사이즈 버퍼 할당
-		e.buf.Grow(len(meta) + len(data))
+	// 메타 정보 쓰기
+	e.buf.Write(meta)
 
-		// 메타 정보 쓰기
-		e.buf.Write(meta)
+	// 데이터 정보 쓰기
+	e.buf.Write(data)
 
-		// 데이터 정보 쓰기
-		e.buf.Write(data)
-
+	// 1000개 일때 벌크 쓰기
+	if e.count >= 1000 {
 		// 로컬 데이터 카피
 		buf := e.buf.Bytes()
-
-		// 버퍼 초기화
-		e.buf.Reset()
-
 		// 벌크라이트
+		logger.Debugf("trigger bulk write : %d", e.count)
 		written, err := e.bulkWrite(index, buf)
 		if err != nil {
 			return 0, nil
 		}
+		// 버퍼 초기화
+		e.buf.Reset()
+		// 카운트 초기화
+		e.count = 0
 		return written, nil
 	}
-	return 0, errors.New("payload is nil")
+	return 0, nil
 }
 
 func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) {

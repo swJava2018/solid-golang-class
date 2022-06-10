@@ -16,6 +16,7 @@ import (
 // Hook up gocheck into the "go test" runner.
 func FSTest(t *testing.T) { gc.TestingT(t) }
 
+// go test -check.f FilesystemSuite
 type FilesystemSuite struct{}
 
 var _ = gc.Suite(&FilesystemSuite{})

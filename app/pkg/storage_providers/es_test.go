@@ -13,8 +13,9 @@ import (
 	gc "gopkg.in/check.v1"
 )
 
-func Test(t *testing.T) { gc.TestingT(t) }
+func ESTest(t *testing.T) { gc.TestingT(t) }
 
+// go test -check.f ESSuite
 type ESSuite struct{}
 
 var _ = gc.Suite(&ESSuite{})

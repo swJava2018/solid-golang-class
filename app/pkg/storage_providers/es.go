@@ -43,8 +43,6 @@ type bulkResponse struct {
 }
 
 type ElasticSearchClientConfig struct {
-	DocType    string              `json:"doc_type,omitempty"`
-	Refresh    bool                `json:"refresh,omitempty"`
 	RateLimit  ratelimit.RateLimit `json:"rate_limit,omitempty"`
 	MaxRetries int                 `json:"max_retries,omitempty"`
 	Delay      int                 `json:"delay,omitempty"`
@@ -59,11 +57,9 @@ type ElasticSearchClient struct {
 	count  int
 	record chan interface{}
 	mu     sync.Mutex
-	ticker *time.Ticker
-	done   chan bool
 
 	workers *concur.WorkerPool
-	job     chan interface{}
+	inCh    chan interface{}
 
 	rateLimiter *rate.Limiter
 	maxRetries  int
@@ -93,16 +89,9 @@ func NewElasticSearchClient(config jsonObj) StorageProvider {
 	logger.Debugf("Elasticsearch transport: %s", string(transport))
 
 	ec := &ElasticSearchClient{
-		client:       es,
-		DocumentType: escConf.DocType,
-		Refresh:      escConf.Refresh,
+		client: es,
 
-		job:         make(chan interface{}),
-		record:      make(chan interface{}),
-		done:        make(chan bool),
-		ticker:      time.NewTicker(TICKER_TIMEOUT_MS * time.Millisecond),
-		count:       0,
-		recordCount: 0,
+		inCh:        make(chan interface{}),
 		rateLimiter: ratelimit.NewRateLimiter(escConf.RateLimit),
 		maxRetries:  escConf.MaxRetries,
 		delay:       escConf.Delay,
@@ -110,67 +99,62 @@ func NewElasticSearchClient(config jsonObj) StorageProvider {
 
 	numWorkers := 1
 
-	ec.workers = concur.NewWorkerPool("elasticsearch-workers", ec.job, numWorkers, ec.Write)
+	ec.workers = concur.NewWorkerPool("elasticsearch-workers", ec.inCh, numWorkers, ec.Write)
 	ec.workers.Start()
 
 	return ec
 }
 
-func (e *ElasticSearchClient) Drain(request interface{}) {
+func (e *ElasticSearchClient) Drain(ctx context.Context, p payloads.Payload) {
 	start := time.Now()
 	logger.Debugf("writing to elasticsearch record chan...")
-	e.record <- request
+	e.inCh <- p
 	logger.Debugf("done writing to elasticsearch chan in %v ms...", time.Since(start).Milliseconds())
 
 }
 
 func (e *ElasticSearchClient) Write(payload interface{}) (int, error) {
-	if payload != nil {
 
-		index, docID, data := payload.(payloads.Payload).Out()
-		e.index = index
+	index, docID, data := payload.(payloads.Payload).Out()
 
-		// documentID 메타정보 오브젝트 생성
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%v" } }%s`, docID, "\n"))
+	// 락 가져오기
+	e.mu.Lock()
+	defer e.mu.Unlock()
 
-		// bulk write 을 위한 개행
-		data = append(data, "\n"...)
+	// documentID 메타정보 오브젝트 생성
+	meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%v" } }%s`, docID, "\n"))
 
-		// 메타, 데이타 오브젝트 사이즈 버퍼 할당
-		e.buf.Grow(len(meta) + len(data))
+	// bulk write 을 위한 개행
+	data = append(data, "\n"...)
 
-		// 메타 정보 쓰기
-		e.buf.Write(meta)
+	// 메타, 데이타 오브젝트 사이즈 버퍼 할당
+	e.buf.Grow(len(meta) + len(data))
 
-		// 데이터 정보 쓰기
-		e.buf.Write(data)
-		e.count += 1
-		// if e.count >= RECORD_CNT_THRESHOLD {
-		logger.Infof("elasticsearch bulk write triggered by record count")
-		logger.Infof("committing batch [count: %v, queue: %v]", e.count, len(e.record))
+	// 메타 정보 쓰기
+	e.buf.Write(meta)
 
-		// pass local copy of write data to the commit
-		// for async write
-		buf := e.buf.Bytes()
-		e.bulkWrite(index, buf)
-		// }
+	// 데이터 정보 쓰기
+	e.buf.Write(data)
+
+	// 로컬 데이터 카피
+	buf := e.buf.Bytes()
+
+	// 버퍼 초기화
+	e.buf.Reset()
+
+	// 벌크라이트
+	written, err := e.bulkWrite(index, buf)
+	if err != nil {
+		return 0, nil
 	}
-	return 0, nil
+	return written, nil
 }
 
 func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) {
 
+	logger.Infof("writing data: %s", string(data))
 	retry := 0
-	lck := time.Now()
-	e.mu.Lock()
-	logger.Infof("took %f to acquire lock", time.Since(lck).Seconds())
-	b := make([]byte, e.buf.Len())
-	e.buf.Read(b)
-	r := bytes.NewReader(b)
-	e.buf.Reset()
-	e.recordCount += e.count
-	e.count = 0
-	e.mu.Unlock()
+	reader := bytes.NewReader(data)
 
 	for {
 		ctx := context.Background()
@@ -179,37 +163,13 @@ func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) 
 		e.rateLimiter.Wait(ctx)
 		logger.Debugf("rate limited for %f seconds", time.Since(startWait).Seconds())
 
-		start := time.Now()
-		numErrors := 0
-		numIndexed := 0
-
-		defer func() {
-			dur := time.Since(start).Milliseconds()
-			if numErrors > 0 {
-				logger.Errorf(
-					"Indexed [%v] documents with [%v] errors in %v ms (%d docs/sec)",
-					numIndexed,
-					numErrors,
-					dur,
-					int64((1000.0/float64(dur))*float64(numIndexed)),
-				)
-			} else if numIndexed > 0 {
-				logger.Infof(
-					"Successfully indexed [%v] documents in %v ms (%d docs/sec)",
-					numIndexed,
-					dur,
-					int64((1000.0/float64(dur))*float64(numIndexed)),
-				)
-			} else {
-				logger.Infof("numErrors: %d, numIndexed: %d", numErrors, numIndexed)
-			}
-		}()
-
 		// Observe write duration in seoncds and set histogram and guage metric
-		res, err := e.client.Bulk(r,
-			e.client.Bulk.WithIndex(e.index),
-			e.client.Bulk.WithDocumentType(e.DocumentType),
+
+		res, err := e.client.Bulk(reader,
+			e.client.Bulk.WithIndex(index),
 		)
+		defer res.Body.Close()
+		// 에러가 발생했거나, 결과값이 없는 경우
 		if err != nil || res == nil {
 			logger.Errorf("error in bulk writing : %s", err.Error())
 			retry++
@@ -219,54 +179,57 @@ func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) 
 				return 0, err
 			}
 			time.Sleep(time.Duration(time.Duration(e.delay) * time.Second))
+			logger.Infof("retrying[%d/%d]", retry, e.maxRetries)
 			continue
 		}
-		defer res.Body.Close()
 
+		numIndexed := 0
+		numErrors := 0
+		//응답에 에러가 있는 경우
 		if !res.IsError() {
 			var blk *bulkResponse
-			if err := json.NewDecoder(res.Body).Decode(&blk); err != nil {
+			err := json.NewDecoder(res.Body).Decode(&blk)
+			if err != nil {
 				logger.Errorf("Failure to to parse response body: %s", err)
 				return 0, err
-			} else {
-				// If the whole request failed, print error and mark all documents as failed
-				for _, d := range blk.Items {
-					// ... so for any HTTP status above 201 ...
-					//
-					if d.Index.Status > 201 {
-						// ... increment the error counter ...
-						//
-						numErrors++
-						// ... and print the response status and error information ...
-						logger.Errorf("Error: [%d]: %s: %s: %s: %s",
-							d.Index.Status,
-							d.Index.Error.Type,
-							d.Index.Error.Reason,
-							d.Index.Error.Cause.Type,
-							d.Index.Error.Cause.Reason,
-						)
-					} else {
-						// ... otherwise increase the success counter.
-						//
-						numIndexed++
-					}
-				}
-				return numIndexed, nil
 			}
+			for _, d := range blk.Items {
+				// 201 코드 이상의 경우
+				if d.Index.Status > 201 {
+					// ... increment the error counter ...
+					//
+					// ... and print the response status and error information ...
+					logger.Errorf("Error: [%d]: %s: %s: %s: %s",
+						d.Index.Status,
+						d.Index.Error.Type,
+						d.Index.Error.Reason,
+						d.Index.Error.Cause.Type,
+						d.Index.Error.Cause.Reason,
+					)
+					// 201 코드 이하의 경우 성공 처리
+				} else {
+					logger.Debugf("Success: ID[%d] Result[%s] Status[%d] ",
+						d.Index.ID,
+						d.Index.Result,
+						d.Index.Status)
+					numIndexed++
+				}
+			}
+			logger.Infof("returning..")
+			return numIndexed, nil
+			// 응답에 에러가 없는 경우
 		} else {
-			numErrors += e.count
-			var raw map[string]interface{}
-			if err := json.NewDecoder(res.Body).Decode(&raw); err != nil {
+			var bodyObj jsonObj
+			if err := json.NewDecoder(res.Body).Decode(&bodyObj); err != nil {
 				logger.Errorf("Failure to to parse response body: %s", err)
 			} else {
 				logger.Printf("Error: [%d] %s: %s",
 					res.StatusCode,
-					raw["error"].(map[string]interface{})["type"],
-					raw["error"].(map[string]interface{})["reason"],
+					bodyObj["error"].(jsonObj)["type"],
+					bodyObj["error"].(jsonObj)["reason"],
 				)
 			}
 			return numErrors, nil
 		}
 	}
-
 }

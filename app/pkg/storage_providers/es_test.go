@@ -8,12 +8,9 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"testing"
 
 	gc "gopkg.in/check.v1"
 )
-
-func ESTest(t *testing.T) { gc.TestingT(t) }
 
 // go test -check.f ESSuite
 type ESSuite struct{}

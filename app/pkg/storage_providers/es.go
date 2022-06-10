@@ -12,35 +12,13 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/time/rate"
+	spes "event-data-pipeline/pkg/storage_providers/es"
 
 	es "github.com/elastic/go-elasticsearch/v8"
+	"golang.org/x/time/rate"
 )
 
-const (
-	REMOTE_SERVICE_ES    = "ElasticSearch"
-	TICKER_TIMEOUT_MS    = 30000
-	RECORD_CNT_THRESHOLD = 1000
-)
-
-type bulkResponse struct {
-	Errors bool `json:"errors"`
-	Items  []struct {
-		Index struct {
-			ID     string `json:"_id"`
-			Result string `json:"result"`
-			Status int    `json:"status"`
-			Error  struct {
-				Type   string `json:"type"`
-				Reason string `json:"reason"`
-				Cause  struct {
-					Type   string `json:"type"`
-					Reason string `json:"reason"`
-				} `json:"caused_by"`
-			} `json:"error"`
-		} `json:"index"`
-	} `json:"items"`
-}
+// var _ pipelines.Sink = new(ElasticSearchClient)
 
 type ElasticSearchClientConfig struct {
 	RateLimit  ratelimit.RateLimit `json:"rate_limit,omitempty"`
@@ -53,10 +31,8 @@ type ElasticSearchClient struct {
 	index        string
 	Refresh      bool
 
-	buf    bytes.Buffer
-	count  int
-	record chan interface{}
-	mu     sync.Mutex
+	buf bytes.Buffer
+	mu  sync.Mutex
 
 	workers *concur.WorkerPool
 	inCh    chan interface{}
@@ -64,8 +40,6 @@ type ElasticSearchClient struct {
 	rateLimiter *rate.Limiter
 	maxRetries  int
 	delay       int
-
-	recordCount int
 }
 
 func init() {
@@ -105,12 +79,12 @@ func NewElasticSearchClient(config jsonObj) StorageProvider {
 	return ec
 }
 
-func (e *ElasticSearchClient) Drain(ctx context.Context, p payloads.Payload) {
+func (e *ElasticSearchClient) Drain(ctx context.Context, p payloads.Payload) error {
 	start := time.Now()
 	logger.Debugf("writing to elasticsearch record chan...")
 	e.inCh <- p
 	logger.Debugf("done writing to elasticsearch chan in %v ms...", time.Since(start).Milliseconds())
-
+	return nil
 }
 
 func (e *ElasticSearchClient) Write(payload interface{}) (int, error) {
@@ -187,7 +161,7 @@ func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) 
 		numErrors := 0
 		//응답에 에러가 있는 경우
 		if !res.IsError() {
-			var blk *bulkResponse
+			var blk *spes.BulkResponse
 			err := json.NewDecoder(res.Body).Decode(&blk)
 			if err != nil {
 				logger.Errorf("Failure to to parse response body: %s", err)

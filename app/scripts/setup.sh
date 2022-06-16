@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # sync module dependcies
 echo "Getting vendor module dependencies..."

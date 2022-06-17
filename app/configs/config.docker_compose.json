@@ -9,7 +9,7 @@
                 "client_name": "default",
                 "topic": "purchases",
                 "consumer_options": {
-                    "bootstrap.servers": "kafka0:29092",
+                    "bootstrap.servers": "kafka:29092",
                     "group.id": "01",
                     "auto.offset.reset": "earliest",
                     "enable.auto.commit": "false",

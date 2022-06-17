@@ -6,8 +6,8 @@ services:
         - "kibana:kibana"
         - "rabbitmq:rabbitmq"
         - "kafka-ui:kafka-ui"
-        - "zookeeper:zookeeper0"
-        - "kafka:kafka0"
+        - "zookeeper0:zookeeper"
+        - "kafka0:kafka"
 
 # Elasticsearch
   elasticsearch:

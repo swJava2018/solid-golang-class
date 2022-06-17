@@ -17,9 +17,8 @@ $ ./bin/event-data-pipeline --debug --config configs/config.json
 ```
 --- 
 ### 배포 환경
-* 여러 OS 플랫폼 타켓을 고려한 바이너리 빌드를 합니다.
+* Dockerfile 를 구성합니다.
 * 컨테이너 이미지를 만들고 Docker Registry에 업로드합니다.
-* GoReleaser 빌드 & 배포 도구를 사용합니다.
 
 #### GoReleaser 설치
 macOS

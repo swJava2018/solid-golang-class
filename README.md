@@ -1,7 +1,8 @@
 # solid-golang-class
+---
 ## Github Action 를 이용한 컨테이너 이미지 빌드
-
-### Workflow 설정파일 편집
+--- 
+### Step1. Workflow 설정파일 편집
 solid-golang-class/.github/workflows/deploy-app.yml
 
 `<BRANCH_NAME>` 과 `<DOCKERHUB_USERNAME>`를 수정
@@ -39,8 +40,16 @@ jobs:
         push: true
         tags: <DOCKERHUB_USERNAME>/event-data-pipeline:latest
 ```
+--- 
+### Step2. Github Secrets 설정
+#### Github Repository > Settings > Secrets > Actions 메뉴에서 New repository secret 클릭 후 각각 생성
+`DOCKERHUB_USERNAME` : [Dockerhub](https://hub.docker.com/) 사용자 계정명
+`DOCKERHUB_TOKEN` : [Dockerhub](https://hub.docker.com/) > Account Settings > Security > New Access Token 생성
 
-### 해당 브랜치 원격지에 Push 반영
+--- 
+### Step3. 해당 브랜치 원격지에 Push 반영
 ```sh
 $ git push 
 ```
+
+### Step4. Github Repository > Actions 에서 확인

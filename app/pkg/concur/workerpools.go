@@ -35,13 +35,12 @@ func (w *WorkerPool) runTask(nbr int) {
 		select {
 		case data := <-w.ch:
 			start := time.Now()
-			id := uuid.New()
-			logger.Debugf("%v [#%v] worker [%v] calling handler: [%v]...", w.name, nbr, w.ID, id.String())
+			logger.Debugf("%v [#%v] worker [%v] write data: [%v]...", w.name, nbr, w.ID, data)
 			size, err := w.task(data)
 			if err != nil {
 				logger.Errorf("%v [#%v] handler [%v] error: %v", w.name, nbr, w.ID, err)
 			}
-			logger.Debugf("%v [#%v] handler [%v] written %v bytes in %v ms [%v]...", w.name, nbr, w.ID, size, time.Since(start).Milliseconds(), id.String())
+			logger.Debugf("%v [#%v] handler [%v] written %v bytes in %v ms...", w.name, nbr, w.ID, size, time.Since(start).Milliseconds())
 		case <-w.signal:
 			logger.Infof("%v [#%v] received shutdown signal", w.name, nbr)
 			return

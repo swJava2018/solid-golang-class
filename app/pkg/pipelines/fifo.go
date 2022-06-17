@@ -32,8 +32,9 @@ func (r fifo) Run(ctx context.Context, params StageParams) {
 			if !ok {
 				return
 			}
+			clone := payloadIn.Clone()
 
-			payloadOut, err := r.proc.Process(ctx, payloadIn)
+			payloadOut, err := r.proc.Process(ctx, clone)
 			if err != nil {
 				wrappedErr := xerrors.Errorf("pipeline stage %d: %w", params.StageIndex(), err)
 				maybeEmitError(wrappedErr, params.Error())

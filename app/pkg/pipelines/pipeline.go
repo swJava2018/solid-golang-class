@@ -138,8 +138,9 @@ func sinkWorker(ctx context.Context, sink Sink, inCh <-chan payloads.Payload, er
 			if !ok {
 				return
 			}
-
-			if err := sink.Drain(ctx, payload); err != nil {
+			logger.Debugf("sink draining payload: %v", payload)
+			clone := payload.Clone()
+			if err := sink.Drain(ctx, clone); err != nil {
 				wrappedErr := xerrors.Errorf("pipeline sink: %w", err)
 				maybeEmitError(wrappedErr, errCh)
 				return

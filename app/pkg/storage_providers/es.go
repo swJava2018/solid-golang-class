@@ -82,7 +82,7 @@ func NewElasticSearchClient(config jsonObj) StorageProvider {
 
 func (e *ElasticSearchClient) Drain(ctx context.Context, p payloads.Payload) error {
 	start := time.Now()
-	logger.Debugf("writing to elasticsearch record chan...")
+	logger.Debugf("writing to elasticsearch record chan: %v", p)
 	e.inCh <- p
 	logger.Debugf("done writing to elasticsearch chan in %v ms...", time.Since(start).Milliseconds())
 	return nil

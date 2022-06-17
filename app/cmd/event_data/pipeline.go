@@ -158,7 +158,7 @@ func (e *EventDataPipeline) Run() error {
 		go consumer.Consume(ctx)
 
 		// 파이프라인 프로세스 구동
-		e.p.Process(&wg, ctx, consumer.(sources.Source), storageProviders)
+		e.p.Process(&wg, ctx, consumer.(sources.Source), storageProviders, errCh)
 	}
 	wg.Wait()
 	logger.Infof("shutting down the event data pipeline...")

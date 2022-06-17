@@ -140,7 +140,7 @@ func (e *ElasticSearchClient) Write(payload interface{}) (int, error) {
 
 func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) {
 
-	logger.Infof("writing data: %s", string(data))
+	logger.Debugf("writing data: %s", string(data))
 	retry := 0
 	reader := bytes.NewReader(data)
 
@@ -203,7 +203,6 @@ func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) 
 					numIndexed++
 				}
 			}
-			logger.Infof("returning..")
 			return numIndexed, nil
 			// 응답에 에러가 없는 경우
 		} else {

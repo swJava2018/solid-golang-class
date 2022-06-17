@@ -15,5 +15,5 @@ $ brew install kcat
 
 ### kcat 을 이용한 Mockeroo 데이터 생성
 ```
-curl -s "https://api.mockaroo.com/api/d5a195e0?count=2000&key=ff7856d0" | kcat -b localhost:9092 -t purchases -P
+curl -s "https://api.mockaroo.com/api/d5a195e0?count=1000&key=ff7856d0" | kcat -b localhost:9092 -t purchases -P
 ```

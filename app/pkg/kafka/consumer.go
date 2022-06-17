@@ -6,6 +6,7 @@ import (
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
 	"fmt"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
@@ -205,7 +206,7 @@ func (kc *KafkaConsumer) Poll(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			logger.Debugf("shutting down consumer read")
+			logger.Infof("shutting down consumer read")
 			return
 		default:
 			ev := kc.kafkaConsumer.Poll(100)
@@ -216,11 +217,13 @@ func (kc *KafkaConsumer) Poll(ctx context.Context) {
 				data, _ := json.MarshalIndent(record, "", " ")
 				logger.Debugf("%s", string(data))
 			case kafka.Error:
-				kc.errCh <- e
 				logger.Errorf("Error: %v: %v", e.Code(), e)
+				kc.errCh <- e
 			case kafka.PartitionEOF:
-				kc.errCh <- e.Error
-				logger.Debugf("[PartitionEOF][Consumer: %s][Topic: %v][Partition: %v][Offset: %d][Message: %v]", kc.kafkaConsumer.String(), *e.Topic, e.Partition, e.Offset, fmt.Sprintf("\"%s\"", e.Error.Error()))
+				logger.Infof("[PartitionEOF][Consumer: %s][Topic: %v][Partition: %v][Offset: %d][Message: %v]", kc.kafkaConsumer.String(), *e.Topic, e.Partition, e.Offset, fmt.Sprintf("\"%s\"", e.Error.Error()))
+			default:
+				time.Sleep(1 * time.Second)
+				logger.Infof("polling...")
 			}
 		}
 	}

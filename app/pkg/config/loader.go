@@ -71,7 +71,7 @@ func NewPipelineConfig(path string) []*PipelineCfg {
 		if err != nil {
 			logger.Panicf("error in read configuration file: %v", err)
 		}
-		logger.Debugf("loaded configuration >>> \n %s", string(body))
+		logger.Infof("loaded configuration >>> \n %s", string(body))
 
 		_cltrsCfArr := UnmarshalArr(ext, body)
 

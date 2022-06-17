@@ -35,7 +35,7 @@ func New(stages ...StageRunner) *Pipeline {
 //  - the supplied context expires
 //
 // It is safe to call Process concurrently with different sources and sinks.
-func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sources.Source, storageProviders []storage_providers.StorageProvider) error {
+func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sources.Source, storageProviders []storage_providers.StorageProvider, errCh chan error) error {
 	pCtx, ctxCancelFn := context.WithCancel(ctx)
 
 	// Allocate channels for wiring together the source, the pipeline stages
@@ -43,7 +43,6 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sourc
 	// for the i+1_th stage. We need to allocate one extra channel than the
 	// number of stages so we can also wire the source/sink.
 	stageCh := make([]chan payloads.Payload, len(p.stages)+1)
-	errCh := make(chan error, len(p.stages)+2)
 	for i := 0; i < len(stageCh); i++ {
 		stageCh[i] = make(chan payloads.Payload)
 	}
@@ -68,9 +67,7 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sourc
 	// Start source and sink workers
 	wg.Add(1)
 	go func() {
-
 		sourceWorker(pCtx, source, stageCh[0], errCh)
-
 		// Signal next stage that no more data is available.
 		close(stageCh[0])
 		wg.Done()
@@ -98,6 +95,7 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sourc
 	var err error
 	for pErr := range errCh {
 		err = multierror.Append(err, pErr)
+		logger.Errorf("err:%v", err)
 		ctxCancelFn()
 	}
 	return err
@@ -120,7 +118,7 @@ out:
 
 		}
 	}
-	logger.Debugf("out of source.Next loop")
+	logger.Infof("Shutting down source worker...")
 	// Check for errors
 	if err := source.Error(); err != nil {
 		wrappedErr := xerrors.Errorf("pipeline source: %w", err)
@@ -147,7 +145,7 @@ func sinkWorker(ctx context.Context, sink Sink, inCh <-chan payloads.Payload, er
 			}
 			payload.MarkAsProcessed()
 		case <-ctx.Done():
-			// Asked to shutdown
+			logger.Infof("Shutting down sink worker...")
 			return
 		}
 	}

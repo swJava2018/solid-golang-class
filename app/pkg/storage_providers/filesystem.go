@@ -92,7 +92,7 @@ func (f *FilesystemClient) Write(payload interface{}) (int, error) {
 
 			// 성공적인 쓰기에 리턴.
 			if err == nil {
-				return len(f.file.Data), nil
+				return 1, nil
 			}
 
 			retry++

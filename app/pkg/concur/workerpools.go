@@ -40,7 +40,7 @@ func (w *WorkerPool) runTask(nbr int) {
 			if err != nil {
 				logger.Errorf("%v [#%v] handler [%v] error: %v", w.name, nbr, w.ID, err)
 			}
-			logger.Debugf("%v [#%v] handler [%v] written %v bytes in %v ms...", w.name, nbr, w.ID, size, time.Since(start).Milliseconds())
+			logger.Debugf("%v [#%v] handler [%v] written %v in %v ms...", w.name, nbr, w.ID, size, time.Since(start).Milliseconds())
 		case <-w.signal:
 			logger.Infof("%v [#%v] received shutdown signal", w.name, nbr)
 			return

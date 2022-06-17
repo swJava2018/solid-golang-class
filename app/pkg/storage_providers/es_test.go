@@ -28,7 +28,7 @@ func (e *ESSuite) TearDownSuite(c *gc.C) {
 }
 
 func (f *ESSuite) TestWrite(c *gc.C) {
-
+	// TODO: 3 주차 솔루션 입니다.
 	cfgObj := make(jsonObj)
 	addresses := &[]interface{}{"http://localhost:9200"}
 	cfgObj["addresses"] = addresses

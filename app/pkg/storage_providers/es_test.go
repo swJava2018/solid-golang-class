@@ -43,11 +43,13 @@ func (f *ESSuite) TestWrite(c *gc.C) {
 	data["id"] = 0
 	json, _ := json.Marshal(data)
 	// 페이로드 stub 생성
-	payload := &esPayloadStub{"event-data-test", fmt.Sprintf("es.write.test.%d", 0), json}
-
-	written, err := es.Write(payload)
-	c.Assert(written, gc.NotNil)
-	c.Assert(err, gc.IsNil)
+	count := 1000
+	for i := 0; i < count; i++ {
+		payload := &esPayloadStub{"event-data-test", fmt.Sprintf("es.write.test.%d", i), json}
+		written, err := es.Write(payload)
+		c.Assert(written, gc.NotNil)
+		c.Assert(err, gc.IsNil)
+	}
 
 }
 

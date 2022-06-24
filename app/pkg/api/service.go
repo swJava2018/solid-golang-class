@@ -47,6 +47,10 @@ func (s *Service) Run() {
 		Handler:        s.router,
 		MaxHeaderBytes: 1 << 20,
 	}
+	logger.Infof("Number of routes: %d", len(s.router.Routes()))
+	for _, r := range s.router.Routes() {
+		logger.Infof("route: %s %s", r.Method, r.Path)
+	}
 
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {

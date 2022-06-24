@@ -1,2 +1,1 @@
-1. Get the application URL by running these commands:
-
+You are ready to enjoy the event data pipeline in kubernetes!

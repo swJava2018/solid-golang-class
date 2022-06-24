@@ -119,14 +119,14 @@ persistence:
   existingClaim:
 ##-----------------------Prometheus Configuration-----------------------------------------------------------------
 prometheusOperator:
-  enable: true
+  enable: false
   namespace: monitoring
   serviceMonitor:
     labels:
       release: prometheus
 ##------------------------Grafana Configuration--------------------------------------------------------------------------------------------------------
 grafana:
-  enabled: true
+  enabled: false
   configmap:
     annotations: {}
   selectorLabels:
@@ -141,10 +141,10 @@ grafana:
 ##--------------------------------------------------------------------------------------------------------------------------------
 ##fluentd configuration
 fluentd:
-  enabled: true
+  enabled: false
   resources: {}
   image:
-    repository: registry.labs.nuance.com/mob-ps/xaas-logging/event-log-infra/fluentd
+    repository: fluent/fluentd
     tag: latest
     pullPolicy: IfNotPresent
   service: |-

@@ -8,7 +8,7 @@ metadata:
 {{ include "event-data-pipeline.labels" . | indent 4 }}
 data:
   config.yaml: 
-    {{ .Values.eventLogCollector.config.content | toYaml | indent 4 }}
+    {{ .Values.eventDataPipeline.config.content | toYaml | indent 4 }}
 
 {{- if eq .Values.fluentd.enabled true }}
   fluent.conf:

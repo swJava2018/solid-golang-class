@@ -38,10 +38,10 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
           - name: event-data-pipeline-config
-            mountPath: /nuance/configs/{{ .Values.eventLogCollector.config.filename }}
-            subPath: {{ .Values.eventLogCollector.config.filename }}
+            mountPath: /app/configs/{{ .Values.eventDataPipeline.config.filename }}
+            subPath: {{ .Values.eventDataPipeline.config.filename }}
           - name: event-data-pipeline-logs-volume
-            mountPath: /nuance/logs/
+            mountPath: /app/logs/
           ports:
           {{- if eq .Values.http.enable true}}
             - name: elc-http

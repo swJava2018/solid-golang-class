@@ -19,4 +19,5 @@ FROM alpine:3.15.0
 WORKDIR /app
 COPY --from=build /app/bin/event-data-pipeline ./
 COPY --from=build /app/configs ./configs
+EXPOSE 8078
 ENTRYPOINT [ "./event-data-pipeline" ]

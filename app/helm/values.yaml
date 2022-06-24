@@ -1,24 +1,30 @@
+# Pod RepliCa 목표 설정
 replicaCount: 1
+
+# Deployment 설정
 strategy:
   rollingUpdate:
     maxUnavailable: 0
     maxSurge: 1
-revisionHistoryLimit: 10
+revisionHistoryLimit: 10 
+
+# 이미지 설정
 image:
-  # Provide a valid repository
   repository: youngstone89/event-data-pipeline
   tag: latest
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''
-# Provide valid environments vars for your deployment
+
+# 환경변수 설정
 environment:
   ELC_ENABLE_LOGGING_TO_FILE: true
   ELC_CONFIG: configs/config.yaml
   ELC_ENABLE_DEBUG_LOGGING: false
-# Update the config content to meet your specific event log collector configuration requirements
-eventLogCollector:
+
+# 런타임 설정
+eventDataPipeline:
   config:
     filename: config.yaml
     content:

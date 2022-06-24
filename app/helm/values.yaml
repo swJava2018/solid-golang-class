@@ -1,82 +1,312 @@
-# Default values for event-data-pipeline.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 replicaCount: 1
-
+strategy:
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+revisionHistoryLimit: 10
 image:
-  repository: nginx
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
-
+  # Provide a valid repository 
+  repository: registry.labs.nuance.com/mob-ps/xaas-logging/event-log-collector
+  tag: 0.2.6
+  pullPolicy: Always
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: ''
+fullnameOverride: ''
+# Provide valid environments vars for your deployment
+environment:
+  ELC_ENABLE_LOGGING_TO_FILE: true
+  ELC_CONFIG: configs/config.yaml
+  ELC_ENABLE_DEBUG_LOGGING: false
+# Update the config content to meet your specific event log collector configuration requirements
+eventLogCollector:
+  config:
+    filename: config.yaml
+    content:
+      - consumer:
+          name: confluent_kafka_client
+          config:
+            max_retries: -1
+            retry_delay: 5
+            record_check_frequency: 15
+            client_name: default
+            topic: PROVIDE AN APP ID
+            consumer_options:
+              bootstrap.servers: "localhost:9092"
+              group.id: "01"
+              auto.offset.reset: earliest
+              enable.auto.commit: "false"
+              enable.partition.eof: "true"
+              session.timeout.ms: "60000"
+              heartbeat.interval.ms: "15000"
+        processors:
+          - name: nuance-mix3
+            transformer:
+              type: nuance-mix3
+              config:
+                kv_mappings:
+                  app_id: "OPTIONAL: PROVIDE A TARGET MIX 3 APP ID TO MAP KAFKA TOPIC TO"
+            storage:
+              - type: elasticsearch
+                config:
+                  addresses:
+                    - "http://localhost:9200"
+                  workerpool:
+                    size: 1
+                  rate_limit:
+                    limit: 10
+                    burst: 1
+              - type: filesystem
+                config:
+                  path: default-processor-logs/customerA-appname-dev
+                  workerpool:
+                    size: 1
+                  rate_limit:
+                    limit: 10
+                    burst: 1
+              - type: s3
+                config:
+                  endpoint: "localhost:9000"
+                  access_key_id: minio
+                  secret_access_key: minio123
+                  use_ssl: false
+                  workerpool:
+                    size: 1
+                  rate_limit:
+                    limit: 10
+                    burst: 1
+              - type: nuance-mix3
+                config:
+                  credentials:
+                    auth_disabled: false
+                    token_url: "https://auth.crt.nuance.com/oauth2/token"
+                    scope: log
+                    client_id: PROVIDE A CLIENT ID
+                    client_secret: PROVIDE A CLIENT SECRET
+                    auth_timeout_ms: 5000
+                  api_url: "https://log.api.nuance.com/producers"
+                  connect_timeout_ms: 5000
+                  max_retries: -1
+                  delay: 5
+                  log_flush_timeout_sec: 5
+                  threshold_bytes: 500000
+                  workerpool:
+                    size: 1
+                  rate_limit:
+                    limit: 10
+                    burst: 1
+                  cache:
+                    type: redis
+                    config:
+                      addr: "localhost:6379"
+                      password: provide redis password
+                      db: 0
+                      default_ttl: 900
+            content_type_filter: []
+            cache:
+              type: local
+              config:
+                expiration: 2880
+                cleanup_interval: 300
+      - consumer:
+          name: mix3_log_api_client
+          config:
+            credentials:
+              auth_disabled: false
+              token_url: "https://auth.crt.nuance.com/oauth2/token"
+              scope: log
+              client_id: PROVIDE A CLIENT ID
+              client_secret: PROVIDE A CLIENT SECRET
+              auth_timeout_ms: 5000
+            max_retries: -1
+            retry_delay: 5
+            record_check_frequency: 6
+            client_name: default
+            consumer_group_id: "01"
+            api_url: "http://localhost:8082"
+            consumer_options:
+              auto.offset.reset: earliest
+        processors:
+          - name: default
+            transformer:
+              type: default
+              config: {}
+            storage:
+              - type: elasticsearch
+                config:
+                  addresses:
+                    - "http://localhost:9200"
+                  workerpool:
+                    size: 1
+                  rate_limit:
+                    limit: 10
+                    burst: 1
+              - type: filesystem
+                config:
+                  path: default-processor-logs/customerB-appname-dev
+                  workerpool:
+                    size: 1
+                  rate_limit:
+                    limit: 10
+                    burst: 1
+              - type: s3
+                config:
+                  endpoint: nuance-bucket.s3.us-east-1.amazonaws.com
+                  access_key_id: XKIA3SFRSHAXP3MWVOVX
+                  secret_access_key: X6EFhWAHQQlwnnCKl9MIj6B5Y3RuGyEIarSo3ubx
+                  use_ssl: true
+                  workerpool:
+                    size: 1
+                  rate_limit:
+                    limit: 10
+                    burst: 1
+            content_type_filter:
+              - application/x-nuance-nluaas-interpretation.v1+json
+              - application/x-nuance-asr-finalresultresponse.v2+json
+              - application/x-nuance-asr-partialresultresponse.v2+json
+              - application/x-nuance-asr-recognitioninitmessage.v2+json
+              - application/x-nuance-asr-statusresponse.v2+json
+              - application/x-nuance-asr-startspeechresponse.v2+json
+            cache:
+              type: local
+              config:
+                expiration: 2880
+                cleanup_interval: 300
+# Secret config values
+secrets: {}
+# artifactory:
+#   password: my-password
+#   token: some-token
 
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
+resources:
+  limits:
+    cpu: 3000m
+    memory: 1.0Gi
+  requests:
+    cpu: 1000m
+    memory: 200Mi
+nodeSelector: {}
+tolerations: []
+affinity: {}
+##--------------------------------------------------------------------------------------------------------------------------------
+deployment:
   annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
-podAnnotations: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
+  serviceLabels: {}
+configmap:
+  annotations: {}
+##--------------------------------------------------------------------------------------------------------------------------------
 service:
   type: ClusterIP
-  port: 80
-
-ingress:
-  enabled: false
-  className: ""
+  ## uncomment to make the ELC service headless
+  #clusterIP: None
+  httpPort: 8078
   annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
+http:
+  enable: true
+  port: 8078
+##--------------------------------------------------------------------------------------------------------------------------------
+#Probing
+livenessProbe:
+  path: /ping
+  failureThreshold: 3
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 5
+readinessProbe:
+  path: /ping
+  failureThreshold: 3
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 5
+##--------------------------------------------------------------------------------------------------------------------------------
+##Persistence Storage Configurations
+##PV should support ReadOnlyMany access mode 
+persistence:
+  ##volumeType can be nfs, hostPath, other, existingClaim.
+  volumeType: none
+  ##Storage property is applicable to volume type nfs and other only 
+  storage: 5Gi
+  ##---------------------------------------------------------------------------------------------------------------------------------
+  ##If volumeType is NFS. 
+  ##PV and PVC will be created for every pool if NFS is enabled. NFS server details needs to be configured below
+  nfs:
+    ##configure nfs server IP 
+    server:
+    ##nfs server mount path
+    path:
+    ##---------------------------------------------------------------------------------------------------------------------------------
+    ##If volumeType is hostPath.
+    ##hostMountPath property is required. Configured dataPack.languages should be available on the host mount path
+  hostMountPath:
+  #---------------------------------------------------------------------------------------------------------------------------------
+  ##If volumeType is other. Configured dataPack.languages should be available on the PV mount 
+  other:
+    storageClassName: ""
+    ##pvSelectors can be configured to bind PVC to a static configured  PV
+    #pvSelectors: 
+    #  pvLabel: pvLabelValue
+    ##---------------------------------------------------------------------------------------------------------------------------------
+    ##If volumeType is existingClaim. Configured dataPack.languages should be available on the PV mount 
+  existingClaim:
+##-----------------------Prometheus Configuration-----------------------------------------------------------------
+prometheusOperator:
+  enable: true
+  namespace: monitoring
+  serviceMonitor:
+    labels:
+      release: prometheus
+##------------------------Grafana Configuration--------------------------------------------------------------------------------------------------------
+grafana:
+  enabled: true
+  configmap:
+    annotations: {}
+  selectorLabels:
+    grafana_dashboard: "grafana_dashboard"
+  datasource:
+    name: "Prometheus"
+    label: "Prometheus"
+    description: ""
+    type: "datasource"
+    pluginId: "prometheus"
+    pluginName: "Prometheus"
+##--------------------------------------------------------------------------------------------------------------------------------
+##fluentd configuration
+fluentd:
+  enabled: true
+  resources: {}
+  image:
+    repository: registry.labs.nuance.com/mob-ps/xaas-logging/event-log-infra/fluentd
+    tag: latest
+    pullPolicy: IfNotPresent
+  service: |-
+    # HTTP input for the liveness and readiness probes
+    <source>
+      @type http
+      port 24224
+    </source>
+    <match fluentd.healthcheck>
+        @type stdout
+    </match>
+    <source>
+      @type tail
+      path /nuance/logs/event-log-collector.log
+      pos_file /nuance/logs/event-log-collector.log.pos
+      tag event-log-collector
+      <parse>
+        @type json
+      </parse>
+    </source>
+    <match event-log-collector>
+      @type elasticsearch
+      host elasticsearch-master.nuance-analytics
+      port 9200
+      time_key  T
+      index_name fluentd.${tag}.%Y%m%d
+      verify_es_version_at_startup false
+      default_elasticsearch_version 7
+      <buffer tag, time>
+        timekey 1h
+      </buffer>
+    </match>
+  ##--------------------------------------------------------------------------------------------------------------------------------

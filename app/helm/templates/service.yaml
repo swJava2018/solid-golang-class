@@ -1,15 +1,32 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "event-data-pipeline.fullname" . }}
+  name: {{ template "event-log-collector.fullname" . }}
   labels:
-    {{- include "event-data-pipeline.labels" . | nindent 4 }}
+    app: {{ template "event-log-collector.name" . }}
+    chart: {{ template "event-log-collector.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    service: {{ template "event-log-collector.fullname" . }}
+{{- if .Values.image.tag }}
+    image: {{ .Values.image.tag }}
+{{- end }}
+{{- if .Values.deployment.serviceLabels }}
+{{- toYaml .Values.deployment.serviceLabels | nindent 4 }}
+{{- end }}
+  annotations:
+{{ toYaml .Values.service.annotations | indent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  {{- if .Values.service.clusterIP }}
+  clusterIP: None
+  {{- end }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
+  - name: event-log-collector-svc-http
+    port: {{ .Values.service.httpPort }}
+    protocol: TCP
+    targetPort: elc-http
   selector:
-    {{- include "event-data-pipeline.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "event-log-collector.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  sessionAffinity: None
+  type: {{ .Values.service.type }}

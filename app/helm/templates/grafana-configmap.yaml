@@ -1,0 +1,4067 @@
+{{- if eq .Values.grafana.enabled true}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ template "event-log-collector.fullname" . }}-grafana
+  annotations:
+{{ toYaml .Values.grafana.configmap.annotations | indent 4 }}
+  labels:
+    app: {{ template "event-log-collector.name" . }}
+    chart: {{ template "event-log-collector.chart" . }}
+    release: {{ .Release.Name }}
+{{ toYaml .Values.grafana.selectorLabels | indent 4 }}
+data:
+  {{ template "event-log-collector.fullname" . }}-grafana-dashboard.json: |-
+    {
+    "annotations": {
+        "list": [
+        {
+            "builtIn": 1,
+            "datasource": "-- Grafana --",
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+            },
+            "type": "dashboard"
+        }
+        ]
+    },
+    "description": "Event Log Collector's Monitoring Dashboard",
+    "editable": true,
+    "gnetId": null,
+    "graphTooltip": 0,
+    "id": 12,
+    "iteration": 1648805111137,
+    "links": [],
+    "panels": [
+        {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+        },
+        "id": 10,
+        "panels": [],
+        "title": "Consumer Components",
+        "type": "row"
+        },
+        {
+        "datasource": null,
+        "description": "",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "No data",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 0,
+            "y": 1
+        },
+        "id": 2,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "vertical",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_consumer_remote_connection{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, remote_service)",
+            "format": "time_series",
+            "instant": true,
+            "interval": "",
+            "legendFormat": "Remote",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Consumer Remote Connection",
+        "transformations": [],
+        "type": "stat"
+        },
+        {
+        "datasource": "${datasource}",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 6,
+            "w": 4,
+            "x": 4,
+            "y": 1
+        },
+        "id": 4,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "/^Value$/",
+            "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "elc_partitions_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}",
+            "format": "table",
+            "instant": true,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "{{`{{topic}}`}}",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Total Partitions",
+        "type": "stat"
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 6,
+            "w": 16,
+            "x": 8,
+            "y": 1
+        },
+        "hiddenSeries": false,
+        "id": 12,
+        "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_commit_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, remote_service, status)",
+            "interval": "",
+            "legendFormat": "{{`{{remote_service}}`}}, {{`{{status}}`}}",
+            "refId": "A"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Consumer Read Commits Total",
+        "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:260",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:261",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 7
+        },
+        "hiddenSeries": false,
+        "id": 76,
+        "interval": "1m",
+        "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": false,
+            "max": true,
+            "min": true,
+            "rightSide": false,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(rate(elc_commit_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m])) by (pod, remote_service)",
+            "interval": "",
+            "legendFormat": "{{`{{remote_service}}`}}",
+            "refId": "A"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Consumer Read Throughput ( op/s )",
+        "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:338",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:339",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 15
+        },
+        "hiddenSeries": false,
+        "id": 78,
+        "interval": "1m",
+        "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "max": true,
+            "min": true,
+            "rightSide": false,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(increase(elc_commit_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m])) by (pod, remote_service)",
+            "interval": "",
+            "legendFormat": "{{`{{remote_service}}`}}",
+            "refId": "A"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Consumer Read Increase ( op/m ) ",
+        "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:422",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:423",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "datasource": "${datasource}",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                },
+                {
+                    "color": "super-light-yellow",
+                    "value": 100
+                },
+                {
+                    "color": "dark-yellow",
+                    "value": 1000
+                },
+                {
+                    "color": "dark-orange",
+                    "value": 10000
+                },
+                {
+                    "color": "super-light-red",
+                    "value": 100000
+                },
+                {
+                    "color": "dark-red",
+                    "value": 1000000
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 24
+        },
+        "id": 72,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_consumer_offset_behind{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, partition)",
+            "interval": "",
+            "legendFormat": "{{`{{partition}}`}}",
+            "refId": "A"
+            }
+        ],
+        "title": "Consumer Read Backlogs per Partition",
+        "type": "stat"
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 2,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 14,
+            "w": 24,
+            "x": 0,
+            "y": 32
+        },
+        "hiddenSeries": false,
+        "id": 74,
+        "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 2,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_consumer_offset_current{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, partition)",
+            "format": "time_series",
+            "instant": false,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "{{`{{partition}}`}} - Current ",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_consumer_offset_low{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod,partition)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "{{`{{partition}}`}} - Low",
+            "refId": "B"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_consumer_offset_high{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod,partition)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "{{`{{partition}}`}} - High",
+            "refId": "C"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_consumer_offset_behind{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod,partition)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "{{`{{partition}}`}} - Behind",
+            "refId": "D"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Offset Range per Partition",
+        "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:324",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:325",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 46
+        },
+        "id": 82,
+        "panels": [],
+        "title": "Events Data",
+        "type": "row"
+        },
+        {
+        "datasource": "${datasource}",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "palette-classic"
+            },
+            "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                "group": "A",
+                "mode": "none"
+                },
+                "thresholdsStyle": {
+                "mode": "off"
+                }
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            },
+            "unit": "short"
+            },
+            "overrides": [
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "count"
+                },
+                "properties": [
+                {
+                    "id": "unit",
+                    "value": "short"
+                }
+                ]
+            },
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "average"
+                },
+                "properties": [
+                {
+                    "id": "unit",
+                    "value": "bytes"
+                }
+                ]
+            },
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "average"
+                },
+                "properties": [
+                {
+                    "id": "unit",
+                    "value": "bytes"
+                }
+                ]
+            },
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "sum"
+                },
+                "properties": [
+                {
+                    "id": "unit",
+                    "value": "bytes"
+                }
+                ]
+            }
+            ]
+        },
+        "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 47
+        },
+        "id": 84,
+        "options": {
+            "legend": {
+            "calcs": [
+                "last"
+            ],
+            "displayMode": "list",
+            "placement": "right"
+            },
+            "tooltip": {
+            "mode": "single"
+            }
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "rate(elc_events_data_size_in_bytes_sum{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m]) / rate(elc_events_data_size_in_bytes_count{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m])\n",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "average",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "elc_events_data_size_in_bytes_sum{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}",
+            "hide": false,
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "sum",
+            "refId": "B"
+            },
+            {
+            "exemplar": true,
+            "expr": "elc_events_data_size_in_bytes_count{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}",
+            "hide": false,
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "count",
+            "refId": "C"
+            }
+        ],
+        "title": "Average Events Data Size ",
+        "type": "timeseries"
+        },
+        {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 56
+        },
+        "id": 14,
+        "panels": [],
+        "title": "Processor Components",
+        "type": "row"
+        },
+        {
+        "datasource": null,
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                },
+                {
+                    "color": "red",
+                    "value": 1
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 57
+        },
+        "id": 16,
+        "options": {
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "text": {}
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "elc_logs_processing_duration_seconds{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}",
+            "instant": false,
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+            }
+        ],
+        "title": "Log Processing Duration Seconds",
+        "type": "gauge"
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 57
+        },
+        "hiddenSeries": false,
+        "id": 18,
+        "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 2,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_logs_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod,processor, status)",
+            "interval": "",
+            "legendFormat": "{{`{{processor}}`}}, {{`{{status}}`}}",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_filesystem_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "filesystem write ",
+            "refId": "B"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_mix3_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "mix3 write ",
+            "refId": "C"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_s3_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "s3/minio write",
+            "refId": "D"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_elasticsearch_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "elasticsearch write",
+            "refId": "E"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_logs_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod,processor)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "{{`{{processor}}`}}, Total (NotProcessed + Processed) ",
+            "refId": "F"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Logs Processed in Total",
+        "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "transformations": [
+            {
+            "id": "calculateField",
+            "options": {
+                "alias": "filesystem write lag",
+                "binary": {
+                "left": "nuance-mix3, Processed",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "filesystem write "
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                },
+                "replaceFields": false
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "alias": "mix3 write lag",
+                "binary": {
+                "left": "nuance-mix3, Processed",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "mix3 write "
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                },
+                "replaceFields": false
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "alias": "s3/minio write lag",
+                "binary": {
+                "left": "nuance-mix3, Processed",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "s3/minio write"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                }
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "alias": "elasticsearch write lag",
+                "binary": {
+                "left": "nuance-mix3, Processed",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "elasticsearch write"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                }
+            }
+            }
+        ],
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:25",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:26",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 65
+        },
+        "hiddenSeries": false,
+        "id": 79,
+        "interval": "1m",
+        "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": false,
+            "max": true,
+            "min": true,
+            "rightSide": false,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(rate(elc_logs_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m])) by (pod, processor, status)",
+            "interval": "",
+            "legendFormat": "{{`{{processor}}`}}, {{`{{status}}`}}",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(rate(elc_logs_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m])) by (pod, processor)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "{{`{{processor}}`}}, Total",
+            "refId": "B"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Processor Processing Throughput ( op/s )",
+        "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:338",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:339",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 2,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 73
+        },
+        "hiddenSeries": false,
+        "id": 53,
+        "interval": "1m",
+        "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": false,
+            "max": true,
+            "min": true,
+            "rightSide": false,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 2,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(increase(elc_logs_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m])) by (pod, processor, status)",
+            "instant": false,
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "{{`{{processor}}`}}, {{`{{status}}`}} ",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(increase(elc_logs_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m])) by (pod, processor)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "{{`{{processor}}`}},  Total ",
+            "refId": "B"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Processor Processing Increase ( op/m ) ",
+        "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:49",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:50",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 82
+        },
+        "id": 20,
+        "panels": [],
+        "title": "Storage Provider Components",
+        "type": "row"
+        },
+        {
+        "datasource": null,
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 4,
+            "x": 0,
+            "y": 83
+        },
+        "id": 22,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "vertical",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "count(elc_storage_remote_connection{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (remote_service,pod)",
+            "interval": "",
+            "legendFormat": "Remote Service : {{`{{remote_service}}`}}",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Storage Server Connection",
+        "type": "stat"
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": null,
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 8,
+            "w": 20,
+            "x": 4,
+            "y": 83
+        },
+        "hiddenSeries": false,
+        "id": 24,
+        "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_mix3_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, code)",
+            "interval": "",
+            "legendFormat": "Mix3: {{`{{code}}`}}",
+            "refId": "Mix3"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_filesystem_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by(pod, code)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "Filesystem: {{`{{code}}`}}",
+            "refId": "Filesystem: {{`{{code}}`}}"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_s3_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, code)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "S3/Minio: {{`{{code}}`}}",
+            "refId": "S3/Minio"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_elasticsearch_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, code)",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "ElasticSearch: {{`{{code}}`}}",
+            "refId": "Elasticsearch"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Storage Provider Writes in Total",
+        "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 91
+        },
+        "hiddenSeries": false,
+        "id": 80,
+        "interval": "30s",
+        "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": false,
+            "max": true,
+            "min": true,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 2,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(rate(elc_mix3_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m]))",
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "Mix3 ",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(rate(elc_filesystem_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m]))",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "Filesystem",
+            "refId": "B"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(rate(elc_elasticsearch_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m]))",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "ElasticSearch",
+            "refId": "C"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(rate(elc_s3_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m]))",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "S3/minio",
+            "refId": "D"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Storage Provider Write Throughput ( op/s ) ",
+        "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:102",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:103",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 99
+        },
+        "hiddenSeries": false,
+        "id": 54,
+        "interval": "30s",
+        "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "max": true,
+            "min": true,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 2,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(increase(elc_mix3_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m]))",
+            "interval": "",
+            "intervalFactor": 1,
+            "legendFormat": "Mix3 ",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(increase(elc_filesystem_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m]))",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "Filesystem",
+            "refId": "B"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(increase(elc_elasticsearch_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m]))",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "ElasticSearch",
+            "refId": "C"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(increase(elc_s3_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}[1m]))",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "S3/minio",
+            "refId": "D"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Storage Provider Writes Increase ( op/m )",
+        "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:102",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:103",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 2,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 107
+        },
+        "hiddenSeries": false,
+        "id": 64,
+        "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "max": true,
+            "min": true,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 2,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "elc_mix3_write_duration_seconds_sum{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"} / elc_mix3_write_duration_seconds_count{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}",
+            "format": "time_series",
+            "interval": "",
+            "legendFormat": "mix3",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "elc_s3_write_duration_seconds_sum{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"} / elc_s3_write_duration_seconds_count{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "s3/minio",
+            "refId": "B"
+            },
+            {
+            "exemplar": true,
+            "expr": "elc_filesystem_write_duration_seconds_sum{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"} / elc_filesystem_write_duration_seconds_count{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "filesystem",
+            "refId": "C"
+            },
+            {
+            "exemplar": true,
+            "expr": "elc_elasticsearch_write_duration_seconds_sum{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"} / elc_elasticsearch_write_duration_seconds_count{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "elasticsearch",
+            "refId": "D"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Average Write Latency per Storage Provider",
+        "tooltip": {
+            "shared": false,
+            "sort": 1,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:138",
+            "format": "s",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:139",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "datasource": "${datasource}",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                },
+                {
+                    "color": "yellow",
+                    "value": 80
+                },
+                {
+                    "color": "orange",
+                    "value": 1000
+                },
+                {
+                    "color": "red",
+                    "value": 10000
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 116
+        },
+        "id": 58,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_logs_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", status=\"Processed\"}) by (pod,status)",
+            "format": "time_series",
+            "hide": false,
+            "instant": true,
+            "interval": "",
+            "legendFormat": "logs",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_filesystem_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod) OR on() vector(0)",
+            "format": "time_series",
+            "hide": false,
+            "instant": true,
+            "interval": "",
+            "legendFormat": "filesystem",
+            "refId": "B"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Filesystem Write lags ",
+        "transformations": [
+            {
+            "id": "calculateField",
+            "options": {
+                "alias": "lag",
+                "binary": {
+                "left": "logs",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "filesystem"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                },
+                "replaceFields": false
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "binary": {
+                "left": "lag",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "logs"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                }
+            }
+            },
+            {
+            "id": "filterByValue",
+            "options": {
+                "filters": [
+                {
+                    "config": {
+                    "id": "lowerOrEqual",
+                    "options": {
+                        "value": 0
+                    }
+                    },
+                    "fieldName": "lag - logs"
+                },
+                {
+                    "config": {
+                    "id": "notEqual",
+                    "options": {
+                        "value": 0
+                    }
+                    },
+                    "fieldName": "filesystem"
+                }
+                ],
+                "match": "all",
+                "type": "include"
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "mode": "reduceRow",
+                "reduce": {
+                "include": [
+                    "lag"
+                ],
+                "reducer": "sum"
+                },
+                "replaceFields": true
+            }
+            }
+        ],
+        "type": "stat"
+        },
+        {
+        "datasource": "${datasource}",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 116
+        },
+        "id": 30,
+        "options": {
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "text": {}
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_filesystem_write_total{code=~\"0\",cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (container,instance,pod,service)",
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Filesystem Write Success Total",
+        "type": "gauge"
+        },
+        {
+        "datasource": null,
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "yellow",
+                    "value": null
+                },
+                {
+                    "color": "orange",
+                    "value": 100
+                },
+                {
+                    "color": "red",
+                    "value": 1000
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 116
+        },
+        "id": 31,
+        "options": {
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "text": {}
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_filesystem_write_total{code=~\"1\",cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod)",
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Filesystem Write Failure Total",
+        "type": "gauge"
+        },
+        {
+        "datasource": "${datasource}",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                },
+                {
+                    "color": "yellow",
+                    "value": 80
+                },
+                {
+                    "color": "orange",
+                    "value": 1000
+                },
+                {
+                    "color": "red",
+                    "value": 10000
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 124
+        },
+        "id": 57,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_logs_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", status=\"Processed\"}) by (pod,status)",
+            "instant": true,
+            "interval": "",
+            "legendFormat": "logs",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_mix3_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod) OR on() vector(0)",
+            "hide": false,
+            "instant": true,
+            "interval": "",
+            "legendFormat": "mix",
+            "refId": "B"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Mix Write lags ",
+        "transformations": [
+            {
+            "id": "calculateField",
+            "options": {
+                "alias": "lag",
+                "binary": {
+                "left": "logs",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "mix"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                },
+                "replaceFields": false
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "binary": {
+                "left": "lag",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "logs"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                }
+            }
+            },
+            {
+            "id": "filterByValue",
+            "options": {
+                "filters": [
+                {
+                    "config": {
+                    "id": "lowerOrEqual",
+                    "options": {
+                        "value": 0
+                    }
+                    },
+                    "fieldName": "lag - logs"
+                },
+                {
+                    "config": {
+                    "id": "notEqual",
+                    "options": {
+                        "value": 0
+                    }
+                    },
+                    "fieldName": "mix"
+                }
+                ],
+                "match": "all",
+                "type": "include"
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "mode": "reduceRow",
+                "reduce": {
+                "include": [],
+                "reducer": "sum"
+                },
+                "replaceFields": true
+            }
+            }
+        ],
+        "type": "stat"
+        },
+        {
+        "datasource": null,
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 124
+        },
+        "id": 32,
+        "options": {
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "text": {}
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_mix3_write_total{code=~\"0\",cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod)",
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Mix3 Write Success Total",
+        "type": "gauge"
+        },
+        {
+        "datasource": null,
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "yellow",
+                    "value": null
+                },
+                {
+                    "color": "orange",
+                    "value": 100
+                },
+                {
+                    "color": "red",
+                    "value": 1000
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 124
+        },
+        "id": 33,
+        "options": {
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "text": {}
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_mix3_write_total{code!~\"0\",cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod)",
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Mix3 Write Failure Total",
+        "type": "gauge"
+        },
+        {
+        "datasource": "${datasource}",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                },
+                {
+                    "color": "yellow",
+                    "value": 80
+                },
+                {
+                    "color": "orange",
+                    "value": 1000
+                },
+                {
+                    "color": "red",
+                    "value": 10000
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 132
+        },
+        "id": 59,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_logs_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", status=\"Processed\"}) by (pod,status)",
+            "instant": true,
+            "interval": "",
+            "legendFormat": "logs",
+            "refId": "A"
+            },
+            {
+            "exemplar": false,
+            "expr": "sum(elc_s3_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod) OR on() vector(0)",
+            "hide": false,
+            "instant": true,
+            "interval": "",
+            "legendFormat": "s3/minio",
+            "refId": "B"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "S3/minio Write lags ",
+        "transformations": [
+            {
+            "id": "calculateField",
+            "options": {
+                "alias": "lag",
+                "binary": {
+                "left": "logs",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "s3/minio"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                },
+                "replaceFields": false
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "binary": {
+                "left": "logs",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "lag"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                }
+            }
+            },
+            {
+            "id": "filterByValue",
+            "options": {
+                "filters": [
+                {
+                    "config": {
+                    "id": "lowerOrEqual",
+                    "options": {
+                        "value": 0
+                    }
+                    },
+                    "fieldName": "logs - lag"
+                },
+                {
+                    "config": {
+                    "id": "notEqual",
+                    "options": {
+                        "value": 0
+                    }
+                    },
+                    "fieldName": "s3/minio"
+                }
+                ],
+                "match": "all",
+                "type": "include"
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "mode": "reduceRow",
+                "reduce": {
+                "include": [
+                    "lag"
+                ],
+                "reducer": "sum"
+                },
+                "replaceFields": true
+            }
+            }
+        ],
+        "type": "stat"
+        },
+        {
+        "datasource": null,
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 132
+        },
+        "id": 34,
+        "options": {
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "text": {}
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_s3_write_total{code=~\"0\",cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (container,instance,pod,service)",
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "S3/Minio Write Success Total",
+        "type": "gauge"
+        },
+        {
+        "datasource": null,
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "yellow",
+                    "value": null
+                },
+                {
+                    "color": "orange",
+                    "value": 100
+                },
+                {
+                    "color": "red",
+                    "value": 1000
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 132
+        },
+        "id": 35,
+        "options": {
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "text": {}
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_s3_write_total{code!~\"0\",cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod)",
+            "instant": false,
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "S3/Minio  Write Failure Total",
+        "type": "gauge"
+        },
+        {
+        "datasource": "${datasource}",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                },
+                {
+                    "color": "yellow",
+                    "value": 80
+                },
+                {
+                    "color": "orange",
+                    "value": 1000
+                },
+                {
+                    "color": "red",
+                    "value": 10000
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 140
+        },
+        "id": 60,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_logs_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", status=\"Processed\"}) by (pod)",
+            "format": "time_series",
+            "hide": false,
+            "instant": true,
+            "interval": "",
+            "legendFormat": "logs",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(elc_elasticsearch_write_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod) OR on() vector(0)",
+            "format": "time_series",
+            "hide": false,
+            "instant": true,
+            "interval": "",
+            "legendFormat": "Elasticsearch",
+            "refId": "B"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "Elasticsearch Write lags ",
+        "transformations": [
+            {
+            "id": "calculateField",
+            "options": {
+                "alias": "lag",
+                "binary": {
+                "left": "logs",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "Elasticsearch"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                },
+                "replaceFields": false
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "binary": {
+                "left": "lag",
+                "operator": "-",
+                "reducer": "sum",
+                "right": "logs"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                },
+                "replaceFields": false
+            }
+            },
+            {
+            "id": "filterByValue",
+            "options": {
+                "filters": [
+                {
+                    "config": {
+                    "id": "lowerOrEqual",
+                    "options": {
+                        "value": 0
+                    }
+                    },
+                    "fieldName": "lag - logs"
+                },
+                {
+                    "config": {
+                    "id": "notEqual",
+                    "options": {
+                        "value": 0
+                    }
+                    },
+                    "fieldName": "Elasticsearch"
+                }
+                ],
+                "match": "all",
+                "type": "include"
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "mode": "reduceRow",
+                "reduce": {
+                "include": [
+                    "lag"
+                ],
+                "reducer": "sum"
+                },
+                "replaceFields": true
+            }
+            }
+        ],
+        "type": "stat"
+        },
+        {
+        "datasource": "${datasource}",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 140
+        },
+        "id": 36,
+        "options": {
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "text": {}
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_elasticsearch_write_total{code=~\"2..\",cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod)",
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "ElasticSearch Write Success Total",
+        "type": "gauge"
+        },
+        {
+        "datasource": "${datasource}",
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "noValue": "N/A",
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "yellow",
+                    "value": null
+                },
+                {
+                    "color": "orange",
+                    "value": 100
+                },
+                {
+                    "color": "red",
+                    "value": 1000
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 140
+        },
+        "id": 37,
+        "options": {
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "text": {}
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_elasticsearch_write_total{code!~\"2..\",cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod)",
+            "instant": false,
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+            }
+        ],
+        "timeFrom": null,
+        "timeShift": null,
+        "title": "ElasticSearch  Write Failure Total",
+        "type": "gauge"
+        },
+        {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 148
+        },
+        "id": 66,
+        "panels": [],
+        "title": "Dead Letter ",
+        "type": "row"
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "description": "Displays the number of event logs pushed to dead letter queue due to some transient errors.",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 149
+        },
+        "hiddenSeries": false,
+        "id": 70,
+        "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_dead_letter_records_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, producer)",
+            "interval": "",
+            "legendFormat": "{{`{{producer}}`}}",
+            "refId": "A"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Dead Letter Records Total",
+        "tooltip": {
+            "shared": false,
+            "sort": 1,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "description": "The number of dead letter itself. a dead letter contains one or more event records. ",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 149
+        },
+        "hiddenSeries": false,
+        "id": 68,
+        "legend": {
+            "avg": false,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_dead_letter_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, producer)",
+            "interval": "",
+            "legendFormat": "{{`{{producer}}`}}",
+            "refId": "A"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Dead Letter Total",
+        "tooltip": {
+            "shared": false,
+            "sort": 1,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 157
+        },
+        "id": 39,
+        "panels": [],
+        "title": "CPU Usage",
+        "type": "row"
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 10,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 158
+        },
+        "hiddenSeries": false,
+        "id": 43,
+        "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+        },
+        "lines": true,
+        "linewidth": 0,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [
+            {
+            "$$hashKey": "object:90",
+            "alias": "requests",
+            "color": "#F2495C",
+            "fill": 0,
+            "hideTooltip": true,
+            "legend": true,
+            "linewidth": 2,
+            "stack": false
+            },
+            {
+            "$$hashKey": "object:138",
+            "alias": "limits",
+            "color": "#FF9830",
+            "fill": 0,
+            "hideTooltip": true,
+            "legend": true,
+            "linewidth": 2,
+            "stack": false
+            }
+        ],
+        "spaceLength": 10,
+        "stack": true,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"$namespace\", pod=\"$pod\", cluster=\"$cluster\"}) by (container)",
+            "interval": "",
+            "legendFormat": "{{`{{container}}`}}",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(\n    kube_pod_container_resource_requests{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"cpu\"}\n)\n",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "requests",
+            "refId": "B"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(\n    kube_pod_container_resource_limits{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"cpu\"}\n)\n",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "limits",
+            "refId": "C"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "CPU Usage",
+        "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:72",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:73",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 168
+        },
+        "id": 41,
+        "panels": [],
+        "title": "Memory Usage",
+        "type": "row"
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 10,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 11,
+            "w": 24,
+            "x": 0,
+            "y": 169
+        },
+        "hiddenSeries": false,
+        "id": 45,
+        "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+        },
+        "lines": true,
+        "linewidth": 0,
+        "nullPointMode": "null as zero",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [
+            {
+            "$$hashKey": "object:237",
+            "alias": "requests",
+            "color": "#F2495C",
+            "dashes": true,
+            "fill": 0,
+            "hideTooltip": true,
+            "legend": true,
+            "linewidth": 2,
+            "stack": false
+            },
+            {
+            "$$hashKey": "object:299",
+            "alias": "limits",
+            "color": "#FF9830",
+            "dashes": true,
+            "fill": 0,
+            "hideTooltip": true,
+            "legend": true,
+            "linewidth": 2,
+            "stack": false
+            }
+        ],
+        "spaceLength": 10,
+        "stack": true,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(container_memory_working_set_bytes{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", container!=\"\", image!=\"\"}) by (container)",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "{{`{{container}}`}}",
+            "refId": "A"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(\n    kube_pod_container_resource_requests{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"memory\"}\n)\n",
+            "hide": false,
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "requests",
+            "refId": "B"
+            },
+            {
+            "exemplar": true,
+            "expr": "sum(\n    kube_pod_container_resource_limits{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"memory\"}\n)\n",
+            "hide": false,
+            "interval": "",
+            "legendFormat": "limits",
+            "refId": "C"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Memory Usage",
+        "tooltip": {
+            "shared": false,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:367",
+            "format": "bytes",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:368",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 180
+        },
+        "id": 8,
+        "panels": [],
+        "title": "Network",
+        "type": "row"
+        },
+        {
+        "datasource": null,
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "palette-classic"
+            },
+            "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                "group": "A",
+                "mode": "none"
+                },
+                "thresholdsStyle": {
+                "mode": "off"
+                }
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            }
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 15,
+            "w": 24,
+            "x": 0,
+            "y": 181
+        },
+        "id": 6,
+        "options": {
+            "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+            },
+            "tooltip": {
+            "mode": "single"
+            }
+        },
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_http_requests_total{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\" }) by (http_url,http_response_status,pod)",
+            "interval": "",
+            "legendFormat": "{{`{{http_url}}`}}, {{`{{http_response_status}}`}}",
+            "refId": "A"
+            }
+        ],
+        "title": "Http Requests",
+        "type": "timeseries"
+        },
+        {
+        "datasource": null,
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "custom": {
+                "align": "center",
+                "displayMode": "auto"
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            }
+            },
+            "overrides": [
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "http_url"
+                },
+                "properties": [
+                {
+                    "id": "custom.width",
+                    "value": null
+                }
+                ]
+            }
+            ]
+        },
+        "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 196
+        },
+        "id": 26,
+        "options": {
+            "frameIndex": 1,
+            "showHeader": true,
+            "sortBy": []
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_http_requests_total{http_response_code=~\"2..\",cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, http_url)",
+            "format": "table",
+            "instant": true,
+            "interval": "",
+            "legendFormat": "URL: {{`{{http_url}}`}}",
+            "refId": "A"
+            }
+        ],
+        "title": "Http Response Code 2XX Total ",
+        "type": "table"
+        },
+        {
+        "datasource": null,
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "custom": {
+                "align": "center",
+                "displayMode": "auto"
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            }
+            },
+            "overrides": [
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "http_url"
+                },
+                "properties": [
+                {
+                    "id": "custom.width",
+                    "value": 437
+                }
+                ]
+            }
+            ]
+        },
+        "gridPos": {
+            "h": 7,
+            "w": 24,
+            "x": 0,
+            "y": 206
+        },
+        "id": 28,
+        "options": {
+            "showHeader": true,
+            "sortBy": []
+        },
+        "pluginVersion": "8.1.5",
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "sum(elc_http_requests_total{http_response_code!~\"2..\",cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}) by (pod, http_url,http_response_code)",
+            "format": "table",
+            "instant": true,
+            "interval": "",
+            "legendFormat": "",
+            "refId": "A"
+            }
+        ],
+        "title": "Http Response Code 3/4/5XX Total ",
+        "type": "table"
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 213
+        },
+        "hiddenSeries": false,
+        "id": 62,
+        "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideZero": false,
+            "max": true,
+            "min": true,
+            "rightSide": true,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "elc_http_request_duration_seconds_current{cluster=\"$cluster\", namespace=\"$namespace\", pod=\"$pod\"}",
+            "interval": "",
+            "legendFormat": "{{`{{path}}`}}",
+            "refId": "A"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Http Request Duration in Seconds - Current",
+        "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:113",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:114",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "collapsed": false,
+        "datasource": null,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 221
+        },
+        "id": 49,
+        "panels": [],
+        "title": "Go Processes",
+        "type": "row"
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "${datasource}",
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 15,
+            "w": 12,
+            "x": 0,
+            "y": 222
+        },
+        "hiddenSeries": false,
+        "id": 47,
+        "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+        },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "go_goroutines{namespace=~\"^($namespace)$\",pod=~\"^($pod)$\"}",
+            "interval": "",
+            "legendFormat": "{{`{{pod}}`}}",
+            "refId": "A"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Goroutines",
+        "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        },
+        {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": null,
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": {
+            "h": 15,
+            "w": 12,
+            "x": 12,
+            "y": 222
+        },
+        "hiddenSeries": false,
+        "id": 51,
+        "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "max": true,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": true
+        },
+        "lines": true,
+        "linewidth": 2,
+        "nullPointMode": "connected",
+        "options": {
+            "alertThreshold": true
+        },
+        "percentage": false,
+        "pluginVersion": "8.1.5",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets": [
+            {
+            "exemplar": true,
+            "expr": "go_gc_duration_seconds{cluster=\"$cluster\",namespace=~\"^($namespace)$\",pod=~\"^($pod)$\"}",
+            "interval": "",
+            "legendFormat": " {{`{{quantile}}`}}",
+            "refId": "A"
+            }
+        ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "GC duration quantiles",
+        "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+        },
+        "type": "graph",
+        "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+        },
+        "yaxes": [
+            {
+            "$$hashKey": "object:15586",
+            "format": "s",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            },
+            {
+            "$$hashKey": "object:15587",
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+            }
+        ],
+        "yaxis": {
+            "align": false,
+            "alignLevel": null
+        }
+        }
+    ],
+    "refresh": "5s",
+    "schemaVersion": 30,
+    "style": "dark",
+    "tags": [
+        "event-log-collector",
+        "v0.2.4"
+    ],
+    "templating": {
+        "list": [
+        {
+            "current": {
+            "selected": false,
+            "text": "Prometheus",
+            "value": "Prometheus"
+            },
+            "description": null,
+            "error": null,
+            "hide": 0,
+            "includeAll": false,
+            "label": null,
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "type": "datasource"
+        },
+        {
+            "allValue": null,
+            "current": {
+            "isNone": true,
+            "selected": false,
+            "text": "None",
+            "value": ""
+            },
+            "datasource": null,
+            "definition": "label_values(kube_pod_info, cluster)",
+            "description": null,
+            "error": null,
+            "hide": 2,
+            "includeAll": false,
+            "label": null,
+            "multi": false,
+            "name": "cluster",
+            "options": [],
+            "query": {
+            "query": "label_values(kube_pod_info, cluster)",
+            "refId": "StandardVariableQuery"
+            },
+            "refresh": 2,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+        },
+        {
+            "allValue": null,
+            "current": {
+            "selected": false,
+            "text": "nuance-analytics",
+            "value": "nuance-analytics"
+            },
+            "datasource": "${datasource}",
+            "definition": "label_values(kube_pod_info{cluster=\"$cluster\"}, namespace)",
+            "description": null,
+            "error": null,
+            "hide": 0,
+            "includeAll": false,
+            "label": null,
+            "multi": false,
+            "name": "namespace",
+            "options": [],
+            "query": {
+            "query": "label_values(kube_pod_info{cluster=\"$cluster\"}, namespace)",
+            "refId": "StandardVariableQuery"
+            },
+            "refresh": 2,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+        },
+        {
+            "allValue": null,
+            "current": {
+            "selected": false,
+            "text": "event-log-collector-lge-all-5774986b59-kpksg",
+            "value": "event-log-collector-lge-all-5774986b59-kpksg"
+            },
+            "datasource": "${datasource}",
+            "definition": "label_values(kube_pod_info{cluster=\"$cluster\", namespace=\"$namespace\"}, pod)",
+            "description": null,
+            "error": null,
+            "hide": 0,
+            "includeAll": false,
+            "label": null,
+            "multi": false,
+            "name": "pod",
+            "options": [],
+            "query": {
+            "query": "label_values(kube_pod_info{cluster=\"$cluster\", namespace=\"$namespace\"}, pod)",
+            "refId": "StandardVariableQuery"
+            },
+            "refresh": 2,
+            "regex": "/event-log-collector.*/",
+            "skipUrlSync": false,
+            "sort": 1,
+            "type": "query"
+        }
+        ]
+    },
+    "time": {
+        "from": "now-30m",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Event Log Collector Dashboard",
+    "uid": "elc024",
+    "version": 1
+    }
+{{- end}}

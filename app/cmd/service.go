@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"event-data-pipeline/cmd/event_data"
+	"event-data-pipeline/cmd/server"
 	"event-data-pipeline/pkg/config"
 	"event-data-pipeline/pkg/logger"
 	"log"
@@ -16,7 +17,10 @@ type (
 )
 
 // Run is the entrypoint for running pipeline
-func Run(cfg config.Config) {
+func Run(cfg config.Config, http *server.HttpServer) {
+
+	// Run Http Server
+	http.Serve()
 
 	// Force garbage collection
 	go GarbageCollector()

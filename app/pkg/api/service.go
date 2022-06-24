@@ -2,6 +2,9 @@ package api
 
 import (
 	"event-data-pipeline/pkg/cli"
+	"event-data-pipeline/pkg/logger"
+	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,4 +39,21 @@ func NewService() *Service {
 	NewRouteHandler(svc)
 
 	return svc
+}
+
+func (s *Service) Run() {
+	server := &http.Server{
+		Addr:           fmt.Sprintf(":%d", s.port),
+		Handler:        s.router,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	// Run our server in a goroutine so that it doesn't block.
+	go func() {
+		logger.Infof("Listening on: %s", server.Addr)
+		if err := server.ListenAndServe(); err != nil {
+			logger.Fatalf("Failed to start service: %v", err)
+		}
+	}()
+
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"event-data-pipeline/cmd"
+	"event-data-pipeline/cmd/server"
 	"event-data-pipeline/pkg"
 	"event-data-pipeline/pkg/config"
 	"event-data-pipeline/pkg/logger"
@@ -14,7 +15,8 @@ func main() {
 	PrintLogo()
 	logger.Setup()
 	cfg := config.NewConfig()
-	cmd.Run(*cfg)
+	http := server.NewHttpServer()
+	cmd.Run(*cfg, http)
 }
 
 func PrintLogo() {

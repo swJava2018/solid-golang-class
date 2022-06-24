@@ -1,24 +1,30 @@
 package api
 
-import "github.com/gin-gonic/gin"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 type Routes struct {
 	router *gin.Engine
 }
 
-func NewRouteHandler(service *Service) *Routes {
-	router := &Routes{
-		router: service.router,
+func NewRouteHandler(s *Service) *Routes {
+	routes := &Routes{
+		router: s.router,
 	}
-	// router.setHealthGetHandler(service.GetConfig().BasePath)
+	routes.router.GET(fmt.Sprintf("%s/health", s.basePath), gin.WrapF(func(rw http.ResponseWriter, req *http.Request) {
+		process(rw)
+	}))
+	return routes
+}
 
-	// if service.GetConfig().DebugEnabled {
-	// 	router.setSwaggerGetHandler(
-	// 		service.GetConfig().Scheme,
-	// 		service.GetConfig().Addr,
-	// 		service.GetConfig().Port,
-	// 		service.GetConfig().BasePath)
-	// }
-
-	return router
+// process processes the health check request
+func process(rw http.ResponseWriter) {
+	i := NewInfo()
+	msg, _ := json.Marshal(i)
+	fmt.Fprintln(rw, string(msg))
 }

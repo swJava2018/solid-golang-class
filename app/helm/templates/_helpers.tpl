@@ -2,7 +2,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "event-log-collector.name" -}}
+{{- define "event-data-pipeline.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -11,7 +11,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "event-log-collector.fullname" -}}
+{{- define "event-data-pipeline.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -27,16 +27,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "event-log-collector.chart" -}}
+{{- define "event-data-pipeline.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "event-log-collector.labels" -}}
-app: {{ include "event-log-collector.name" . }}
-helm.sh/chart: {{ include "event-log-collector.chart" . }}
+{{- define "event-data-pipeline.labels" -}}
+app: {{ include "event-data-pipeline.name" . }}
+helm.sh/chart: {{ include "event-data-pipeline.chart" . }}
 release: {{ .Release.Name }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
@@ -47,9 +47,9 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "event-log-collector.serviceAccountName" -}}
+{{- define "event-data-pipeline.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create -}}
-    {{ default (include "event-log-collector.fullname" .) .Values.serviceAccount.name }}
+    {{ default (include "event-data-pipeline.fullname" .) .Values.serviceAccount.name }}
 {{- else -}}
     {{ default "default" .Values.serviceAccount.name }}
 {{- end -}}

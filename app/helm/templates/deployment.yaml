@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "event-log-collector.fullname" . }}
+  name: {{ include "event-data-pipeline.fullname" . }}
   annotations:
 {{ toYaml .Values.deployment.annotations | indent 4 }}
   labels:
-{{ include "event-log-collector.labels" . | indent 4 }}
+{{ include "event-data-pipeline.labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "event-log-collector.name" . }}
+      app.kubernetes.io/name: {{ include "event-data-pipeline.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   strategy:
     rollingUpdate:
@@ -22,7 +22,7 @@ spec:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
-        app.kubernetes.io/name: {{ include "event-log-collector.name" . }}
+        app.kubernetes.io/name: {{ include "event-data-pipeline.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
@@ -37,10 +37,10 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-          - name: event-log-collector-config
+          - name: event-data-pipeline-config
             mountPath: /nuance/configs/{{ .Values.eventLogCollector.config.filename }}
             subPath: {{ .Values.eventLogCollector.config.filename }}
-          - name: event-log-collector-logs-volume
+          - name: event-data-pipeline-logs-volume
             mountPath: /nuance/logs/
           ports:
           {{- if eq .Values.http.enable true}}
@@ -93,7 +93,7 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5
           volumeMounts:
-          - name: event-log-collector-logs-volume
+          - name: event-data-pipeline-logs-volume
             mountPath: /nuance/logs/
           - name: fluentd-service-config
             mountPath: /fluentd/etc/fluent.conf
@@ -112,17 +112,17 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-        - name: event-log-collector-config
+        - name: event-data-pipeline-config
           configMap:
-            name: {{ template "event-log-collector.fullname" . }}
+            name: {{ template "event-data-pipeline.fullname" . }}
 {{- if eq .Values.fluentd.enabled true }}        
         - name: fluentd-service-config
           configMap:
-            name: {{ template "event-log-collector.fullname" . }}
+            name: {{ template "event-data-pipeline.fullname" . }}
             items:
             - key: fluent.conf
               path: fluent.conf
               mode: 420
-        - name: event-log-collector-logs-volume
+        - name: event-data-pipeline-logs-volume
           emptyDir: {}
 {{- end }}

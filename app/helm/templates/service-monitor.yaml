@@ -2,21 +2,21 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ template "event-log-collector.fullname" . }}
+  name: {{ template "event-data-pipeline.fullname" . }}
   namespace: {{ .Values.prometheusOperator.namespace }}
   labels:
 {{ toYaml .Values.prometheusOperator.serviceMonitor.labels | indent 4 }}
-    app: {{ template "event-log-collector.name" . }}
-    chart: {{ template "event-log-collector.chart" . }}
+    app: {{ template "event-data-pipeline.name" . }}
+    chart: {{ template "event-data-pipeline.chart" . }}
     heritage: {{ .Release.Service }}
 spec:
   selector:
     matchLabels:
-      app: {{ template "event-log-collector.name" . }}
+      app: {{ template "event-data-pipeline.name" . }}
       release: {{ .Release.Name }}
   namespaceSelector:
     matchNames:
     - {{ .Release.Namespace }}
   endpoints:
-  - port: event-log-collector-svc-http
+  - port: event-data-pipeline-svc-http
 {{- end}}

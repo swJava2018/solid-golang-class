@@ -1,11 +1,11 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: {{ template "event-log-collector.fullname" . }}
+  name: {{ template "event-data-pipeline.fullname" . }}
   annotations:
 {{ toYaml .Values.configmap.annotations | indent 4 }}   
   labels:
-{{ include "event-log-collector.labels" . | indent 4 }}
+{{ include "event-data-pipeline.labels" . | indent 4 }}
 data:
   config.yaml: 
     {{ .Values.eventLogCollector.config.content | toYaml | indent 4 }}

@@ -2,16 +2,16 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: {{ template "event-log-collector.fullname" . }}-grafana
+  name: {{ template "event-data-pipeline.fullname" . }}-grafana
   annotations:
 {{ toYaml .Values.grafana.configmap.annotations | indent 4 }}
   labels:
-    app: {{ template "event-log-collector.name" . }}
-    chart: {{ template "event-log-collector.chart" . }}
+    app: {{ template "event-data-pipeline.name" . }}
+    chart: {{ template "event-data-pipeline.chart" . }}
     release: {{ .Release.Name }}
 {{ toYaml .Values.grafana.selectorLabels | indent 4 }}
 data:
-  {{ template "event-log-collector.fullname" . }}-grafana-dashboard.json: |-
+  {{ template "event-data-pipeline.fullname" . }}-grafana-dashboard.json: |-
     {
     "annotations": {
         "list": [
@@ -3945,7 +3945,7 @@ data:
     "schemaVersion": 30,
     "style": "dark",
     "tags": [
-        "event-log-collector",
+        "event-data-pipeline",
         "v0.2.4"
     ],
     "templating": {
@@ -4029,8 +4029,8 @@ data:
             "allValue": null,
             "current": {
             "selected": false,
-            "text": "event-log-collector-lge-all-5774986b59-kpksg",
-            "value": "event-log-collector-lge-all-5774986b59-kpksg"
+            "text": "event-data-pipeline-lge-all-5774986b59-kpksg",
+            "value": "event-data-pipeline-lge-all-5774986b59-kpksg"
             },
             "datasource": "${datasource}",
             "definition": "label_values(kube_pod_info{cluster=\"$cluster\", namespace=\"$namespace\"}, pod)",
@@ -4047,7 +4047,7 @@ data:
             "refId": "StandardVariableQuery"
             },
             "refresh": 2,
-            "regex": "/event-log-collector.*/",
+            "regex": "/event-data-pipeline.*/",
             "skipUrlSync": false,
             "sort": 1,
             "type": "query"

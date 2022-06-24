@@ -40,8 +40,10 @@ spec:
           - name: event-data-pipeline-config
             mountPath: /app/configs/{{ .Values.eventDataPipeline.config.filename }}
             subPath: {{ .Values.eventDataPipeline.config.filename }}
+          {{- if eq .Values.fluentd.enabled true }}          
           - name: event-data-pipeline-logs-volume
             mountPath: /app/logs/
+          {{- end}}
           ports:
           {{- if eq .Values.http.enable true}}
             - name: elc-http

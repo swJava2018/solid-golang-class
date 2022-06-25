@@ -12,7 +12,7 @@ $ minikube addons enable ekf
 
 ## Elasticsearch 설치
 ```
-$ helm upgrade --create-namespace --install elasticsearch elastic/elasticsearch -n analytics --set singleNode=true
+$ helm upgrade --create-namespace --install elasticsearch elastic/elasticsearch -f values.yaml -n analytics
 ```
 
 ## Kibana 설치

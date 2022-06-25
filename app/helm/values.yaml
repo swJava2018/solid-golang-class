@@ -48,9 +48,10 @@ eventDataPipeline:
           - name: kafka_default
           - name: kafka_normalizer
         storages:
-          - type: filesystem
+          - type: elasticsearch
             config:
-              path: "fs"
+              addresses:
+                - "http://elasticsearch-master.anlytics:9200"
 resources:
   limits:
     cpu: 3000m

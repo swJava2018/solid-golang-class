@@ -10,12 +10,12 @@ minikube 환경에서 편의상 Elasticsearch, Kibana를 설치하는 방법
 $ minikube addons enable ekf
 ```
 
-## Elasticsearch 설치
+## Helm 으로 Elasticsearch 설치
 ```
 $ helm upgrade --create-namespace --install elasticsearch elastic/elasticsearch -f values.yaml -n analytics
 ```
 
-## Kibana 설치
+## Helm 으로 Kibana 설치
 ```
 $ helm upgrade --create-namespace --install kibana elastic/kibana -n analytics
 ```

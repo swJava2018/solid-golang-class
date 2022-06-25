@@ -21,12 +21,12 @@ $ brew install minikube
 ## Minikube 클러스터 시작하기
 `virtualbox` 드라이버로 클러스터 구동하기
 ```
-$ minikube start --driver=virtualbox --memory=4096 
+$ minikube start --driver=virtualbox --cpus=4 --memory=8192
 ```
 
 `docker` 드라이버로 클러스터 구동하기
 ```
-$ minikube start --driver=docker --memory=4096 
+$ minikube start --driver=docker --cpus=4 --memory=8192
 ```
 
 특정 드라이버를 기본값으로 설정

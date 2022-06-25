@@ -1,0 +1,21 @@
+
+## 네임스페이스 생성
+```
+$ kubectl create namespace analytics
+```
+
+## Minikube Addon 으로 EFK Enable 설치
+minikube 환경에서 편의상 Elasticsearch, Kibana를 설치하는 방법
+```
+$ minikube addons enable ekf
+```
+
+## Elasticsearch 설치
+```
+$ helm upgrade --create-namespace --install elasticsearch elastic/elasticsearch -n analytics --set singleNode=true
+```
+
+## Kibana 설치
+```
+$ helm upgrade --create-namespace --install kibana elastic/kibana -n analytics
+```

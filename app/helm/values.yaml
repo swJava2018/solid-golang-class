@@ -21,7 +21,7 @@ fullnameOverride: ''
 environment:
   ELC_ENABLE_LOGGING_TO_FILE: true
   ELC_CONFIG: configs/config.yaml
-  ELC_ENABLE_DEBUG_LOGGING: false
+  ELC_ENABLE_DEBUG_LOGGING: true
 
 # 런타임 설정
 eventDataPipeline:
@@ -48,9 +48,10 @@ eventDataPipeline:
           - name: kafka_default
           - name: kafka_normalizer
         storages:
-          - type: filesystem
+          - type: elasticsearch
             config:
-              path: fs/
+              addresses:
+                - http://elasticsearch-logging.kube-system:9200
 resources:
   limits:
     cpu: 3000m

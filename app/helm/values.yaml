@@ -51,7 +51,7 @@ eventDataPipeline:
           - type: elasticsearch
             config:
               addresses:
-                - "http://elasticsearch-master.anlytics:9200"
+                - http://elasticsearch-master-headless.analytics:9200
 resources:
   limits:
     cpu: 3000m

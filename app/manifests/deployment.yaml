@@ -26,11 +26,11 @@ spec:
     spec:
       containers:
       - env:
-        - name: ELC_CONFIG
+        - name: EDP_CONFIG
           value: configs/config.yaml
-        - name: ELC_ENABLE_DEBUG_LOGGING
+        - name: EDP_ENABLE_DEBUG_LOGGING
           value: "false"
-        - name: ELC_ENABLE_LOGGING_TO_FILE
+        - name: EDP_ENABLE_LOGGING_TO_FILE
           value: "true"
         image: youngstone89/event-data-pipeline:latest
         imagePullPolicy: Always

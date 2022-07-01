@@ -165,18 +165,18 @@ fluentd:
     </match>
     <source>
       @type tail
-      path /nuance/logs/event-log-collector.log
-      pos_file /nuance/logs/event-log-collector.log.pos
-      tag event-log-collector
+      path /app/logs/event-data-pipeline.log
+      pos_file /app/logs/event-data-pipeline.log.pos
+      tag event-data-pipeline
       <parse>
         @type json
       </parse>
     </source>
-    <match event-log-collector>
+    <match event-data-pipeline>
       @type elasticsearch
-      host elasticsearch-master.nuance-analytics
+      host elasticsearch-master.analytics
       port 9200
-      time_key  T
+      time_key  ts
       index_name fluentd.${tag}.%Y%m%d
       verify_es_version_at_startup false
       default_elasticsearch_version 7

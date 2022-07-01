@@ -2,7 +2,7 @@ https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack
 
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
-helm install [RELEASE_NAME] prometheus-community/kube-prometheus-stack
+helm upgrade --create-namespace --atomic --install prometheus prometheus-community/kube-prometheus-stack -n monitoring
 
 
 ## Remove

@@ -21,7 +21,7 @@ fullnameOverride: ''
 environment:
   ELC_ENABLE_LOGGING_TO_FILE: true
   ELC_CONFIG: configs/config.yaml
-  ELC_ENABLE_DEBUG_LOGGING: true
+  ELC_ENABLE_DEBUG_LOGGING: false
 
 # 런타임 설정
 eventDataPipeline:
@@ -148,12 +148,12 @@ grafana:
 ##--------------------------------------------------------------------------------------------------------------------------------
 ##fluentd configuration
 fluentd:
-  enabled: false
+  enabled: true
   resources: {}
   image:
-    repository: fluent/fluentd
+    repository: youngstone89/fluentd
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   service: |-
     # HTTP input for the liveness and readiness probes
     <source>
@@ -176,12 +176,6 @@ fluentd:
       @type elasticsearch
       host elasticsearch-master.analytics
       port 9200
-      time_key  ts
-      index_name fluentd.${tag}.%Y%m%d
-      verify_es_version_at_startup false
-      default_elasticsearch_version 7
-      <buffer tag, time>
-        timekey 1h
-      </buffer>
+      logstash_format true
     </match>
   ##--------------------------------------------------------------------------------------------------------------------------------

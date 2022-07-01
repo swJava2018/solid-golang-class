@@ -9,3 +9,7 @@ metadata:
 data:
   config.yaml:
     {{ .Values.eventDataPipeline.config.content | toYaml | indent 4 }}
+{{- if eq .Values.fluentd.enabled true }}
+  fluent.conf:
+    {{ toYaml .Values.fluentd.service | indent 4 }}
+{{- end }}

@@ -96,7 +96,7 @@ spec:
             timeoutSeconds: 5
           volumeMounts:
           - name: event-data-pipeline-logs-volume
-            mountPath: /nuance/logs/
+            mountPath: /app/logs/
           - name: fluentd-service-config
             mountPath: /fluentd/etc/fluent.conf
             subPath: fluent.conf

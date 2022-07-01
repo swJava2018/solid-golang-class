@@ -14,4 +14,4 @@ kubectl-apply:
 	kubectl apply -f manifests/deployment.yaml
 
 helm-install:
-	helm upgrade --atomic --install event-data-pipeline helm/ -n default
+	helm upgrade --create-namespace --atomic --install event-data-pipeline helm/ -n events

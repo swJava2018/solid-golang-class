@@ -1,4 +1,4 @@
-.PHONEY: install-kafka, install-prometheus, install-elasticsearch
+.PHONEY: install-kafka, install-prometheus, install-elasticsearch, install-kibana
 
 install-kafka:
 	kafka/deploy.sh
@@ -8,3 +8,6 @@ install-prometheus:
 
 install-elasticsearch:
 	cd elasticsearch; ./deploy.sh
+
+install-kibana:
+	kibana/deploy.sh

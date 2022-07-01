@@ -41,13 +41,9 @@ func Setup() {
 	var level zapcore.Level
 
 	// Apply one of the default encoder configs based on run-time environment (prod vs non-prod)
-	if production {
-		ec = zap.NewProductionEncoderConfig()
-		level = zap.NewProductionConfig().Level.Level()
-	} else {
-		ec = zap.NewDevelopmentEncoderConfig()
-		level = zap.NewDevelopmentConfig().Level.Level()
-	}
+
+	ec = zap.NewDevelopmentEncoderConfig()
+	level = zap.NewDevelopmentConfig().Level.Level()
 
 	// Create a JSON encoder and customize date & time formatting
 	encoder := zapcore.NewJSONEncoder(ec)

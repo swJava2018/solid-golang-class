@@ -176,6 +176,10 @@ fluentd:
       @type elasticsearch
       host elasticsearch-master.analytics
       port 9200
-      logstash_format true
+      time_key  T
+      index_name fluentd.${tag}.%Y%m%d
+      <buffer tag, time>
+        timekey 1h
+      </buffer>
     </match>
   ##--------------------------------------------------------------------------------------------------------------------------------

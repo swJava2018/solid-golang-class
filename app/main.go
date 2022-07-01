@@ -22,7 +22,7 @@ func main() {
 func PrintLogo() {
 	logo := figure.NewColorFigure("Youngstone", "", "green", true)
 	logo.Print()
-	class := figure.NewColorFigure("Week 5 - SOLID GO", "", "yellow", true)
+	class := figure.NewColorFigure("Week 6 - SOLID GO", "", "yellow", true)
 	class.Print()
 	ccssLite := figure.NewColorFigure("Event Data Pipeline", "", "blue", true)
 	ccssLite.Print()

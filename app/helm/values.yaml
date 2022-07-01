@@ -176,7 +176,7 @@ fluentd:
       @type elasticsearch
       host elasticsearch-master.analytics
       port 9200
-      time_key  T
+      time_key ts
       index_name fluentd.${tag}.%Y%m%d
       <buffer tag, time>
         timekey 1h

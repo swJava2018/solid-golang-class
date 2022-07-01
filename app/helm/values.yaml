@@ -179,6 +179,7 @@ fluentd:
       time_key ts
       index_name fluentd.${tag}.%Y%m%d
       <buffer tag, time>
+        @type file
         timekey 1h
       </buffer>
     </match>

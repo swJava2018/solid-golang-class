@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var _ Consumer = new(KafkaConsumer)
@@ -48,6 +49,8 @@ type KafkaConsumer struct {
 	errCh chan error
 
 	payload payloads.Payload
+
+	readCounter prometheus.Counter
 }
 
 func NewKafkaConsumer(config jsonObj) *KafkaConsumer {
@@ -71,11 +74,12 @@ func NewKafkaConsumer(config jsonObj) *KafkaConsumer {
 
 	// create a new KafkaConsumer with configMap fed in
 	kafkaConsumer := &KafkaConsumer{
-		topic:     topic,
-		configMap: &kcm,
-		ctx:       ctx,
-		stream:    stream,
-		errCh:     errch,
+		topic:       topic,
+		configMap:   &kcm,
+		ctx:         ctx,
+		stream:      stream,
+		errCh:       errch,
+		readCounter: ConsumerReadTotal,
 	}
 
 	return kafkaConsumer
@@ -214,6 +218,7 @@ func (kc *KafkaConsumer) Poll(ctx context.Context) {
 			case *kafka.Message:
 				record := cast(e)
 				kc.stream <- record
+				kc.readCounter.Inc()
 				data, _ := json.MarshalIndent(record, "", " ")
 				logger.Debugf("%s", string(data))
 			case kafka.Error:

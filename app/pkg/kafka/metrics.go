@@ -11,10 +11,10 @@ const (
 )
 
 var (
-	ConsumerReadTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+	ConsumerReadTotal = promauto.NewCounter(prometheus.CounterOpts{
 		Name: EDP_KAFKA_CONSUMER_READ_TOTAL,
-		Help: EDP_KAFKA_CONSUMER_READ_TOTAL_HELP,
-	}, []string{})
+		Help: EDP_KAFKA_CONSUMER_READ_TOTAL_HELP},
+	)
 )
 
 func init() {

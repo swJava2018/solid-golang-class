@@ -132,9 +132,9 @@ func NewProductionConfig() Config {
 	}
 }
 
-// NewEncoderConfig returns an opinionated EncoderConfig for
+// NewDevelopmentEncoderConfig returns an opinionated EncoderConfig for
 // development environments.
-func NewEncoderConfig() zapcore.EncoderConfig {
+func NewDevelopmentEncoderConfig() zapcore.EncoderConfig {
 	return zapcore.EncoderConfig{
 		// Keys can be anything except the empty string.
 		TimeKey:        "T",
@@ -163,7 +163,7 @@ func NewDevelopmentConfig() Config {
 		Level:            NewAtomicLevelAt(DebugLevel),
 		Development:      true,
 		Encoding:         "console",
-		EncoderConfig:    NewEncoderConfig(),
+		EncoderConfig:    NewDevelopmentEncoderConfig(),
 		OutputPaths:      []string{"stderr"},
 		ErrorOutputPaths: []string{"stderr"},
 	}

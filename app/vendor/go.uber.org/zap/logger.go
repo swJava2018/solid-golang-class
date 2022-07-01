@@ -91,6 +91,22 @@ func NewNop() *Logger {
 	}
 }
 
+// NewProduction builds a sensible production Logger that writes InfoLevel and
+// above logs to standard error as JSON.
+//
+// It's a shortcut for NewProductionConfig().Build(...Option).
+func NewProduction(options ...Option) (*Logger, error) {
+	return NewProductionConfig().Build(options...)
+}
+
+// NewDevelopment builds a development Logger that writes DebugLevel and above
+// logs to standard error in a human-friendly format.
+//
+// It's a shortcut for NewDevelopmentConfig().Build(...Option).
+func NewDevelopment(options ...Option) (*Logger, error) {
+	return NewDevelopmentConfig().Build(options...)
+}
+
 // NewExample builds a Logger that's designed for use in zap's testable
 // examples. It writes DebugLevel and above logs to standard out as JSON, but
 // omits the timestamp and calling function to keep example output

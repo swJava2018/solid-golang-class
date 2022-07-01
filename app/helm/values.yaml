@@ -21,7 +21,7 @@ fullnameOverride: ''
 environment:
   EDP_ENABLE_LOGGING_TO_FILE: true
   EDP_CONFIG: configs/config.yaml
-  EDP_ENABLE_DEBUG_LOGGING: true
+  EDP_ENABLE_DEBUG_LOGGING: false
 
 # 런타임 설정
 eventDataPipeline:
@@ -94,6 +94,36 @@ readinessProbe:
   periodSeconds: 10
   successThreshold: 1
   timeoutSeconds: 5
+##--------------------------------------------------------------------------------------------------------------------------------
+##Persistence Storage Configurations
+##PV should support ReadOnlyMany access mode 
+persistence:
+  ##volumeType can be nfs, hostPath, other, existingClaim.
+  volumeType: none
+  ##Storage property is applicable to volume type nfs and other only 
+  storage: 5Gi
+  ##---------------------------------------------------------------------------------------------------------------------------------
+  ##If volumeType is NFS. 
+  ##PV and PVC will be created for every pool if NFS is enabled. NFS server details needs to be configured below
+  nfs:
+    ##configure nfs server IP 
+    server:
+    ##nfs server mount path
+    path:
+    ##---------------------------------------------------------------------------------------------------------------------------------
+    ##If volumeType is hostPath.
+    ##hostMountPath property is required. Configured dataPack.languages should be available on the host mount path
+  hostMountPath:
+  #---------------------------------------------------------------------------------------------------------------------------------
+  ##If volumeType is other. Configured dataPack.languages should be available on the PV mount 
+  other:
+    storageClassName: ""
+    ##pvSelectors can be configured to bind PVC to a static configured  PV
+    #pvSelectors: 
+    #  pvLabel: pvLabelValue
+    ##---------------------------------------------------------------------------------------------------------------------------------
+    ##If volumeType is existingClaim. Configured dataPack.languages should be available on the PV mount 
+  existingClaim:
 ##-----------------------Prometheus Configuration-----------------------------------------------------------------
 prometheusOperator:
   enable: true
@@ -146,7 +176,7 @@ fluentd:
       @type elasticsearch
       host elasticsearch-master.analytics
       port 9200
-      time_key T
+      time_key ts
       index_name fluentd.${tag}.%Y%m%d
       <buffer tag, time>
         timekey 1h

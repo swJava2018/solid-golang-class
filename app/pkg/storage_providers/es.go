@@ -173,7 +173,7 @@ func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) 
 
 		numIndexed := 0
 		numErrors := 0
-		//응답에 에러가 있는 경우
+		//응답에 에러가 없는 경우
 		if !res.IsError() {
 			var blk *spes.BulkResponse
 			err := json.NewDecoder(res.Body).Decode(&blk)
@@ -203,8 +203,10 @@ func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) 
 					numIndexed++
 				}
 			}
+			//prometheus metrics counter
+			esWriteTotal.Add(float64(numIndexed))
 			return numIndexed, nil
-			// 응답에 에러가 없는 경우
+			// 응답에 에러가 있는 경우
 		} else {
 			var bodyObj jsonObj
 			if err := json.NewDecoder(res.Body).Decode(&bodyObj); err != nil {

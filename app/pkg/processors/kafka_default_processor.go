@@ -34,6 +34,7 @@ func (k *KafkaDefaultProcessor) Process(ctx context.Context, p payloads.Payload)
 	if err != nil {
 		return nil, err
 	}
-
+	// prometheus metrics counter
+	KafkaProcessTotal.Inc()
 	return p, nil
 }

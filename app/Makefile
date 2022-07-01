@@ -1,5 +1,5 @@
 .PHONEY: up, down, gen-event-kafka
-.PHONEY: helm-install
+.PHONEY: helm-install, helm-destroy
 
 up:
 	docker compose -f docker-compose.yaml -f docker-compose-dependencies.yaml up -d
@@ -15,3 +15,6 @@ kubectl-apply:
 
 helm-install:
 	helm upgrade --create-namespace --atomic --install event-data-pipeline helm/ -n events
+
+helm-destroy:
+	helm uninstall event-data-pipeline -n events

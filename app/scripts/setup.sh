@@ -4,7 +4,6 @@
 echo "Getting vendor module dependencies..."
 go mod init event-data-pipeline
 go mod tidy
-go mod vendor
 go mod verify
 echo "done"
 echo

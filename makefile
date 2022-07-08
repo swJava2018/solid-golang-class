@@ -1,28 +1,45 @@
-.PHONEY: install-kafka-docker
+.PHONEY: install-kafka-docker, uninstall-kafka-docker,generate-kafka-events
+.PHONEY: install-rabbitmq-docker, install-rabbitmq-docker, generate-rabbitmq-events
 .PHONEY: install-kafka-k8s, install-prometheus-k8s, install-elasticsearch-k8s, install-kibana-k8s
 .PHONEY: run-local
 
+# docker deployment
+## kafka
 install-kafka-docker:
 	docker compose -f kafka/docker-compose.yaml up -d
 
 uninstall-kafka-docker:
-	docker compose -f kafka/docker-compose.yaml down 
+	docker compose -f kafka/docker-compose.yaml down
 
 generate-kafka-events:
 	./kafka/gen-events.sh
 
-install-kafka:
+## rabbitmq
+install-rabbitmq-docker:
+	docker compose -f rabbitmq/docker-compose.yaml up -d
+
+uninstall-rabbitmq-docker:
+	docker compose -f rabbitmq/docker-compose.yaml down
+
+generate-rabbitmq-events:
+	cd rabbitmq/mock-data-generator; go run main.go
+
+# k8s deployment
+
+install-kafka-k8s:
 	kafka/deploy.sh
 
-install-prometheus:
+install-prometheus-k8s:
 	prometheus/deploy.sh
 
-install-elasticsearch:
+install-elasticsearch-k8s:
 	cd elasticsearch; ./deploy.sh
 
-install-kibana:
+install-kibana-k8s:
 	kibana/deploy.sh
 
+
+# build and run
 build-local:
 	cd app; ./scripts/setup.sh
 

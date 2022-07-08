@@ -5,6 +5,9 @@
 install-kafka-docker:
 	docker compose -f kafka/docker-compose.yaml up -d
 
+uninstall-kafka-docker:
+	docker compose -f kafka/docker-compose.yaml down 
+
 generate-kafka-events:
 	./kafka/gen-events.sh
 

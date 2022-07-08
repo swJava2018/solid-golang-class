@@ -1,10 +1,11 @@
-package consumers
+package consumers_test
 
 import (
 	"context"
 	"encoding/json"
 	"event-data-pipeline/pkg/cli"
 	"event-data-pipeline/pkg/config"
+	"event-data-pipeline/pkg/consumers"
 	"event-data-pipeline/pkg/logger"
 	"os"
 	"testing"
@@ -43,7 +44,7 @@ func TestRabbitMQConsumerClient_Consume(t *testing.T) {
 		cfgParams["pipeParams"] = pipeParams
 		cfgParams["consumerCfg"] = cfg.Consumer.Config
 
-		rabbitmqConsumer, err := CreateConsumer(cfg.Consumer.Name, cfgParams)
+		rabbitmqConsumer, err := consumers.CreateConsumer(cfg.Consumer.Name, cfgParams)
 		if err != nil {
 			t.Error(err)
 		}

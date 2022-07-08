@@ -12,17 +12,14 @@ func init() {
 }
 
 type RabbitMQMetaInjector struct {
-	// TODO: 2주차 솔루션입니다.
 }
 
 func NewRabbitMQMetaInjector(config jsonObj) Processor {
-	// TODO: 2주차 솔루션입니다.
 	return &RabbitMQMetaInjector{}
 }
 
 // Process implements Processor
 func (*RabbitMQMetaInjector) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
-	// TODO: 2주차 솔루션입니다.
 	logger.Debugf("InjectMetaRabbitMQPayload processing...")
 	rbbtPayload := p.(*payloads.RabbitMQPayload)
 

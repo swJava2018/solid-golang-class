@@ -45,8 +45,6 @@ func CreateConsumer(name string, config jsonObj) (Consumer, error) {
 
 	factory, ok := consumerFactories[name]
 	if !ok {
-		// Factory has not been registered.
-		// Make a list of all available datastore factories for logging.
 		availableConsumers := make([]string, 0)
 		for k := range consumerFactories {
 			availableConsumers = append(availableConsumers, k)

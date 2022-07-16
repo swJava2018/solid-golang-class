@@ -1,6 +1,6 @@
-.PHONEY: install-kafka-docker, uninstall-kafka-docker,generate-kafka-events
-.PHONEY: install-rabbitmq-docker, install-rabbitmq-docker, generate-rabbitmq-events
-.PHONEY: install-kafka-k8s, install-prometheus-k8s, install-elasticsearch-k8s, install-kibana-k8s
+.PHONEY: install-kafka-docker uninstall-kafka-docker generate-kafka-events
+.PHONEY: install-rabbitmq-docker install-rabbitmq-docker generate-rabbitmq-events
+.PHONEY: install-kafka-k8s install-prometheus-k8s install-elasticsearch-k8s install-kibana-k8s
 .PHONEY: run-local
 
 # docker deployment

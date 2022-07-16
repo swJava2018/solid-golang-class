@@ -33,6 +33,17 @@ type RabbitMQPayload struct {
 // Clone implements pipeline.Payload.
 func (kp *RabbitMQPayload) Clone() Payload {
 	newP := rabbitMQPayloadPool.Get().(*RabbitMQPayload)
+	newP.Id = kp.Id
+	newP.Email = kp.Email
+	newP.Gender = kp.Gender
+	newP.FirstName = kp.FirstName
+	newP.LastName = kp.LastName
+	newP.Queue = kp.Queue
+	newP.Value = kp.Value
+	newP.Timestamp = kp.Timestamp
+	newP.Index = kp.Index
+	newP.DocID = kp.DocID
+	newP.Data = kp.Data
 
 	return newP
 }

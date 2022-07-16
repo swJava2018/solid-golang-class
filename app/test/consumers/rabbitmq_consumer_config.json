@@ -12,7 +12,7 @@
                 "name": "rabbitmq_default"
             },
             {
-                "name": "rabbitmq_normalize"
+                "name": "rabbitmq_normalizer"
             }
         ],
         "storages": [

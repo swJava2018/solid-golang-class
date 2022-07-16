@@ -42,7 +42,10 @@ func Run(cfg config.Config, http *server.HttpServer) {
 	}
 
 	// 파이프라인 프로세스를 구동하는 메소드
-	edp.Run()
+	err = edp.Run()
+	if err != nil {
+		logger.Errorf(err.Error())
+	}
 
 	logger.Infof("shutting down service.")
 }

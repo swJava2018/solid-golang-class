@@ -32,6 +32,9 @@ func (r fifo) Run(ctx context.Context, params StageParams) {
 			if !ok {
 				return
 			}
+			if payloadIn == nil {
+				return
+			}
 			clone := payloadIn.Clone()
 
 			payloadOut, err := r.proc.Process(ctx, clone)

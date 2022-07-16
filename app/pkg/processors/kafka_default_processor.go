@@ -2,6 +2,7 @@ package processors
 
 import (
 	"context"
+	"errors"
 	"event-data-pipeline/pkg/payloads"
 )
 
@@ -37,4 +38,17 @@ func (k *KafkaDefaultProcessor) Process(ctx context.Context, p payloads.Payload)
 	// prometheus metrics counter
 	KafkaProcessTotal.Inc()
 	return p, nil
+}
+func (k *KafkaDefaultProcessor) Validate(ctx context.Context, p payloads.Payload) error {
+
+	// Embedded Validator 사용
+	err := k.Validator.Validate(ctx, p)
+	if err != nil {
+		return err
+	}
+	kp := p.(*payloads.KafkaPayload)
+	if kp.Value == nil {
+		return errors.New("valud is nil")
+	}
+	return nil
 }

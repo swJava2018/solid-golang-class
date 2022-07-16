@@ -29,7 +29,7 @@ func TestKafkaDefaultProcessor_Process(t *testing.T) {
 		{
 			desc:          "invalid payload",
 			processorName: "kafka_default",
-			payload:       nil,
+			payload:       &payloads.KafkaPayload{Value: nil},
 			testcase:      "invalid",
 		},
 	}
@@ -71,6 +71,7 @@ func TestKafkaDefaultProcessor_Process(t *testing.T) {
 
 			stageCh[0] <- tC.payload
 
+			noread := 0
 			for {
 				select {
 				case err := <-errCh:
@@ -86,6 +87,12 @@ func TestKafkaDefaultProcessor_Process(t *testing.T) {
 					t.Log(string(data))
 					cancelFunc()
 					return
+				default:
+					noread++
+					if noread > 5 {
+						cancelFunc()
+						t.Log("no output for invalid payload")
+					}
 				}
 			}
 		})

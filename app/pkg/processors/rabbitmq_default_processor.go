@@ -2,6 +2,7 @@ package processors
 
 import (
 	"context"
+	"errors"
 	"event-data-pipeline/pkg/payloads"
 )
 
@@ -26,14 +27,26 @@ func NewRabbitMQDefaultProcessor(config jsonObj) Processor {
 	return p
 }
 
-func (k *RabbitMQDefaultProcessor) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
-	err := k.Validate(ctx, p)
+func (r *RabbitMQDefaultProcessor) Process(ctx context.Context, p payloads.Payload) (payloads.Payload, error) {
+	err := r.Validate(ctx, p)
 	if err != nil {
 		return nil, err
 	}
-	p, err = k.RabbitMQMetaInjector.Process(ctx, p)
+	p, err = r.RabbitMQMetaInjector.Process(ctx, p)
 	if err != nil {
 		return nil, err
 	}
 	return p, nil
+}
+
+func (r *RabbitMQDefaultProcessor) Validate(ctx context.Context, p payloads.Payload) error {
+	err := r.Validator.Validate(ctx, p)
+	if err != nil {
+		return err
+	}
+	rp := p.(*payloads.RabbitMQPayload)
+	if rp.Value == nil {
+		return errors.New("value is nil")
+	}
+	return nil
 }

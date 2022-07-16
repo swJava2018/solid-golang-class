@@ -27,7 +27,7 @@ func TestRabbitMQefaultProcessor_Process(t *testing.T) {
 		{
 			desc:          "invalid payload",
 			processorName: "rabbitmq_default",
-			payload:       nil,
+			payload:       &payloads.RabbitMQPayload{Value: nil},
 			testcase:      "invalid",
 		},
 	}

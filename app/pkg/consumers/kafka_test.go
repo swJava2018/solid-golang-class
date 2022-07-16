@@ -1,9 +1,11 @@
-package consumers
+package consumers_test
 
 import (
 	"context"
+	"encoding/json"
 	"event-data-pipeline/pkg/cli"
 	"event-data-pipeline/pkg/config"
+	"event-data-pipeline/pkg/consumers"
 	"event-data-pipeline/pkg/logger"
 	"os"
 	"path"
@@ -13,6 +15,8 @@ import (
 
 	"github.com/alexflint/go-arg"
 )
+
+type jsonObj = map[string]interface{}
 
 func TestKafkaConsumerClient_Consume(t *testing.T) {
 	configPath := getCurDir() + "/test/consumers/kafka_consumer_config.json"
@@ -43,7 +47,7 @@ func TestKafkaConsumerClient_Consume(t *testing.T) {
 		cfgParams["pipeParams"] = pipeParams
 		cfgParams["consumerCfg"] = cfg.Consumer.Config
 
-		kafkaConsumer, err := CreateConsumer(cfg.Consumer.Name, cfgParams)
+		kafkaConsumer, err := consumers.CreateConsumer(cfg.Consumer.Name, cfgParams)
 		if err != nil {
 			t.Error(err)
 		}
@@ -57,7 +61,8 @@ func TestKafkaConsumerClient_Consume(t *testing.T) {
 	for {
 		select {
 		case data := <-stream:
-			t.Logf("data: %v", data)
+			_json, _ := json.MarshalIndent(data, "", " ")
+			t.Logf("data: %v", string(_json))
 			return
 		case err := <-errCh:
 			t.Logf("err: %v", err)

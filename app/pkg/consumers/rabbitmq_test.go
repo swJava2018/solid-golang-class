@@ -1,10 +1,11 @@
-package consumers
+package consumers_test
 
 import (
 	"context"
 	"encoding/json"
 	"event-data-pipeline/pkg/cli"
 	"event-data-pipeline/pkg/config"
+	"event-data-pipeline/pkg/consumers"
 	"event-data-pipeline/pkg/logger"
 	"os"
 	"testing"
@@ -14,7 +15,6 @@ import (
 )
 
 func TestRabbitMQConsumerClient_Consume(t *testing.T) {
-	//TODO: 1주차 과제 솔루션 입니다.
 	configPath := getCurDir() + "/test/consumers/rabbitmq_consumer_config.json"
 	os.Setenv("EDP_ENABLE_DEBUG_LOGGING", "false")
 	os.Setenv("EDP_CONFIG", configPath)
@@ -43,7 +43,7 @@ func TestRabbitMQConsumerClient_Consume(t *testing.T) {
 		cfgParams["pipeParams"] = pipeParams
 		cfgParams["consumerCfg"] = cfg.Consumer.Config
 
-		rabbitmqConsumer, err := CreateConsumer(cfg.Consumer.Name, cfgParams)
+		rabbitmqConsumer, err := consumers.CreateConsumer(cfg.Consumer.Name, cfgParams)
 		if err != nil {
 			t.Error(err)
 		}

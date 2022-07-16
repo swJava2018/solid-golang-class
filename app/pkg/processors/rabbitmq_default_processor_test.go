@@ -12,7 +12,6 @@ import (
 )
 
 func TestRabbitMQefaultProcessor_Process(t *testing.T) {
-	// TODO: 2주차 솔루션입니다.
 	testCases := []struct {
 		desc          string
 		processorName string

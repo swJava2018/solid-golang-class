@@ -53,8 +53,9 @@ func (r fifo) Run(ctx context.Context, params StageParams) {
 
 			// broadcast output to all output channels
 			for _, outCh := range params.Output() {
+				p := payloadOut.Clone()
 				select {
-				case outCh <- payloadOut:
+				case outCh <- p:
 				case <-ctx.Done():
 					return
 				}

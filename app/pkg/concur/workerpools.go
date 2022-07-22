@@ -1,6 +1,7 @@
 package concur
 
 import (
+	"encoding/json"
 	"event-data-pipeline/pkg/logger"
 	"time"
 
@@ -35,7 +36,8 @@ func (w *WorkerPool) runTask(nbr int) {
 		select {
 		case data := <-w.ch:
 			start := time.Now()
-			logger.Debugf("%v [#%v] worker [%v] write data: [%v]...", w.name, nbr, w.ID, data)
+			_json, _ := json.MarshalIndent(data, "", " ")
+			logger.Debugf("%v [#%v] worker [%v] write data: [%s]...", w.name, nbr, w.ID, _json)
 			size, err := w.task(data)
 			if err != nil {
 				logger.Errorf("%v [#%v] handler [%v] error: %v", w.name, nbr, w.ID, err)

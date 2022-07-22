@@ -51,13 +51,18 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sourc
 	for i := 0; i < len(p.stages); i++ {
 		wg.Add(1)
 		go func(stageIndex int) {
+			outCh := []chan<- payloads.Payload{stageCh[stageIndex+1]}
+			if stageIndex == len(p.stages)-1 {
+				for i := 0; i < len(storageProviders)-1; i++ {
+					outCh = append(outCh, stageCh[stageIndex+1])
+				}
+			}
 			p.stages[stageIndex].Run(pCtx, &workerParams{
 				stage: stageIndex,
 				inCh:  stageCh[stageIndex],
-				outCh: []chan<- payloads.Payload{stageCh[stageIndex+1]},
+				outCh: outCh,
 				errCh: errCh,
 			})
-
 			// Signal next stage that no more data is available.
 			close(stageCh[stageIndex+1])
 			wg.Done()
@@ -136,7 +141,6 @@ func sinkWorker(ctx context.Context, sink Sink, inCh <-chan payloads.Payload, er
 			if !ok {
 				return
 			}
-			logger.Debugf("sink draining payload: %v", payload)
 			clone := payload.Clone()
 			if err := sink.Drain(ctx, clone); err != nil {
 				wrappedErr := xerrors.Errorf("pipeline sink: %w", err)

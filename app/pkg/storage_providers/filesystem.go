@@ -107,9 +107,6 @@ func (f *FilesystemClient) Write(payload interface{}) (int, error) {
 
 // Drain implements pipelines.Sink
 func (f *FilesystemClient) Drain(ctx context.Context, p payloads.Payload) error {
-	// 페이로드를 받아서
-	logger.Debugf("sending payload to worker input channel...")
 	f.inCh <- p
-	logger.Debugf("payload to worker input channel...")
 	return nil
 }

@@ -51,11 +51,13 @@ func (r fifo) Run(ctx context.Context, params StageParams) {
 				continue
 			}
 
-			// Output processed data
-			select {
-			case params.Output() <- payloadOut:
-			case <-ctx.Done():
-				return
+			// broadcast output to all output channels
+			for _, outCh := range params.Output() {
+				select {
+				case outCh <- payloadOut:
+				case <-ctx.Done():
+					return
+				}
 			}
 		}
 	}

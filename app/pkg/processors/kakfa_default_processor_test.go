@@ -62,7 +62,7 @@ func TestKafkaDefaultProcessor_Process(t *testing.T) {
 			wp := &workerParams{
 				stage: 0,
 				inCh:  stageCh[0],
-				outCh: stageCh[1],
+				outCh: []chan<- payloads.Payload{stageCh[1]},
 				errCh: errCh,
 			}
 			// StageRunner 구현체 FIFO 실행

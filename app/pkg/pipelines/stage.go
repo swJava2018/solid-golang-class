@@ -17,7 +17,7 @@ type StageParams interface {
 	Input() <-chan payloads.Payload
 
 	// Output returns a channel for writing the output payloads for a stage.
-	Output() chan<- payloads.Payload
+	Output() []chan<- payloads.Payload
 
 	// Error returns a channel for writing errors that were encountered by
 	// a stage while processing payloads.

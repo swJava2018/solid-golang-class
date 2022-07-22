@@ -59,7 +59,7 @@ func TestNoopProcessor_Process(t *testing.T) {
 			wp := &workerParams{
 				stage: 0,
 				inCh:  stageCh[0],
-				outCh: stageCh[1],
+				outCh: []chan<- payloads.Payload{stageCh[1]},
 				errCh: errCh,
 			}
 			// StageRunner 구현체 FIFO 실행
@@ -118,11 +118,11 @@ type workerParams struct {
 
 	// Channels for the worker's input, output and errors.
 	inCh  <-chan payloads.Payload
-	outCh chan<- payloads.Payload
+	outCh []chan<- payloads.Payload
 	errCh chan<- error
 }
 
-func (p *workerParams) StageIndex() int                 { return p.stage }
-func (p *workerParams) Input() <-chan payloads.Payload  { return p.inCh }
-func (p *workerParams) Output() chan<- payloads.Payload { return p.outCh }
-func (p *workerParams) Error() chan<- error             { return p.errCh }
+func (p *workerParams) StageIndex() int                   { return p.stage }
+func (p *workerParams) Input() <-chan payloads.Payload    { return p.inCh }
+func (p *workerParams) Output() []chan<- payloads.Payload { return p.outCh }
+func (p *workerParams) Error() chan<- error               { return p.errCh }

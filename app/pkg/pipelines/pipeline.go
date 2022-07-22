@@ -54,7 +54,7 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sourc
 			p.stages[stageIndex].Run(pCtx, &workerParams{
 				stage: stageIndex,
 				inCh:  stageCh[stageIndex],
-				outCh: stageCh[stageIndex+1],
+				outCh: []chan<- payloads.Payload{stageCh[stageIndex+1]},
 				errCh: errCh,
 			})
 

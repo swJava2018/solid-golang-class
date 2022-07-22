@@ -27,7 +27,9 @@ func init() {
 
 // Filesystem Config includes storage settings for filesystem
 type FsCfg struct {
-	Path string `json:"path,omitempty"`
+	Path   string `json:"path,omitempty"`
+	Worker int    `json:"worker,omitempty"`
+	Buffer int    `json:"buffer,omitempty"`
 }
 
 type FilesystemClient struct {
@@ -50,12 +52,16 @@ func NewFilesystemClient(config jsonObj) StorageProvider {
 
 	fc := &FilesystemClient{
 		RootDir:     fsc.Path,
-		inCh:        make(chan interface{}),
+		inCh:        make(chan interface{}, fsc.Buffer),
 		count:       0,
 		rateLimiter: ratelimit.NewRateLimiter(ratelimit.RateLimit{Limit: 10, Burst: 0}),
 	}
+	numWorkers := 1
+	if fsc.Worker > 0 {
+		numWorkers = fsc.Worker
+	}
 
-	fc.workers = concur.NewWorkerPool("filesystem-workers", fc.inCh, 1, fc.Write)
+	fc.workers = concur.NewWorkerPool("filesystem-workers", fc.inCh, numWorkers, fc.Write)
 	fc.workers.Start()
 
 	return fc

@@ -25,6 +25,7 @@ type ElasticSearchClientConfig struct {
 	RateLimit  ratelimit.RateLimit `json:"rate_limit,omitempty"`
 	MaxRetries int                 `json:"max_retries,omitempty"`
 	Delay      int                 `json:"delay,omitempty"`
+	Worker     int                 `json:"worker,omitempty"`
 }
 type ElasticSearchClient struct {
 	client       *es.Client
@@ -73,6 +74,9 @@ func NewElasticSearchClient(config jsonObj) StorageProvider {
 	}
 
 	numWorkers := 1
+	if escConf.Worker > 0 {
+		numWorkers = escConf.Worker
+	}
 
 	ec.workers = concur.NewWorkerPool("elasticsearch-workers", ec.inCh, numWorkers, ec.Write)
 	ec.workers.Start()

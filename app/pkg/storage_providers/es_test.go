@@ -19,7 +19,7 @@ var _ = gc.Suite(&ESSuite{})
 
 func (e *ESSuite) SetUpSuite(c *gc.C) {
 	os.Args = nil
-	os.Setenv("EDP_ENABLE_DEBUG_LOGGING", "true")
+	os.Setenv("EDP_ENABLE_DEBUG_LOGGING", "false")
 	logger.Setup()
 
 }

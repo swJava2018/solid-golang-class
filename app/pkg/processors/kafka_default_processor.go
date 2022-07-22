@@ -48,7 +48,7 @@ func (k *KafkaDefaultProcessor) Validate(ctx context.Context, p payloads.Payload
 	}
 	kp := p.(*payloads.KafkaPayload)
 	if kp.Value == nil {
-		return errors.New("valud is nil")
+		return errors.New("value is nil")
 	}
 	return nil
 }

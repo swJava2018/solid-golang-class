@@ -8,7 +8,7 @@ import (
 )
 
 var _ Processor = new(ProcessorFunc)
-var _ ProcessorFunc = NormalizeKafkaPayload
+var _ ProcessorFunc = NormalizeRabbitMQPayload
 
 func init() {
 	Register("rabbitmq_normalizer", NewNormalizeRabbitMQPayloadProcessor)

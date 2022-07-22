@@ -24,8 +24,15 @@ uninstall-rabbitmq-docker:
 generate-rabbitmq-events:
 	cd rabbitmq/mock-data-generator; go run main.go
 
-# k8s deployment
+## elasticsearch
 
+install-elasticsearch-docker:
+	docker compose -f elasticsearch/docker-compose.yaml up -d
+
+uninstall-elasticsearch-docker:
+	docker compose -f elasticsearch/docker-compose.yaml down
+
+# k8s deployment
 install-kafka-k8s:
 	kafka/deploy.sh
 

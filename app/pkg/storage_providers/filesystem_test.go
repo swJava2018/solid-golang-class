@@ -4,6 +4,8 @@ import (
 	"event-data-pipeline/pkg/logger"
 	"event-data-pipeline/pkg/payloads"
 	"event-data-pipeline/pkg/storage_providers"
+	"math"
+	"testing"
 
 	"fmt"
 	"os"
@@ -118,4 +120,31 @@ func (*fsPayloadStub) MarkAsProcessed() {
 // Out implements payloads.Payload
 func (p *fsPayloadStub) Out() (string, string, []byte) {
 	return p.dir, p.filename, []byte(`{}`)
+}
+
+// go test -bench=. -count 5 -run=^# -benchmem
+func BenchmarkPrimNumbers(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		primeNumbers(1000)
+	}
+}
+func primeNumbers(max int) []int {
+	var primes []int
+
+	for i := 2; i < max; i++ {
+		isPrime := true
+
+		for j := 2; j <= int(math.Sqrt(float64(i))); j++ {
+			if i%j == 0 {
+				isPrime = false
+				break
+			}
+		}
+
+		if isPrime {
+			primes = append(primes, i)
+		}
+	}
+
+	return primes
 }

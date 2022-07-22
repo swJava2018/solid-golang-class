@@ -19,7 +19,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// var _ pipelines.Sink = new(FilesystemClient)
+var _ StorageProvider = new(FilesystemClient)
 
 func init() {
 	Register("filesystem", NewFilesystemClient)

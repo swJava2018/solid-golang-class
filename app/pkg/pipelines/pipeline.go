@@ -42,7 +42,7 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sourc
 	// and the output sink. The output of the i_th stage is used as an input
 	// for the i+1_th stage. We need to allocate one extra channel than the
 	// number of stages so we can also wire the source/sink.
-	stageCh := make([]chan payloads.Payload, len(p.stages)+1)
+	stageCh := make([]chan payloads.Payload, len(p.stages)+len(storageProviders))
 	for i := 0; i < len(stageCh); i++ {
 		stageCh[i] = make(chan payloads.Payload)
 	}
@@ -53,8 +53,9 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sourc
 		go func(stageIndex int) {
 			outCh := []chan<- payloads.Payload{stageCh[stageIndex+1]}
 			if stageIndex == len(p.stages)-1 {
-				for i := 0; i < len(storageProviders)-1; i++ {
-					outCh = append(outCh, stageCh[stageIndex+1])
+				outCh = make([]chan<- payloads.Payload, 0)
+				for i := len(p.stages); i < len(p.stages)+len(storageProviders); i++ {
+					outCh = append(outCh, stageCh[i])
 				}
 			}
 			p.stages[stageIndex].Run(pCtx, &workerParams{
@@ -78,13 +79,13 @@ func (p *Pipeline) Process(wg *sync.WaitGroup, ctx context.Context, source sourc
 		wg.Done()
 	}()
 
-	for _, s := range storageProviders {
+	for i, s := range storageProviders {
 		wg.Add(1)
-		go func(s storage_providers.StorageProvider) {
+		go func(idx int, s storage_providers.StorageProvider) {
 			sink := s.(Sink)
-			sinkWorker(pCtx, sink, stageCh[len(stageCh)-1], errCh)
+			sinkWorker(pCtx, sink, stageCh[len(stageCh)-1-idx], errCh)
 			wg.Done()
-		}(s)
+		}(i, s)
 	}
 
 	// Close the error channel once all workers exit.

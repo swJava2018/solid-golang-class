@@ -1,22 +1,26 @@
 package main
 
 import (
-	"fmt"
-	aPkg "go-example/pkg/a"
-	bPkg "go-example/pkg/b"
-	bcPkg "go-example/pkg/bc"
-	cPkg "go-example/pkg/c"
+	"go-example/pkg/a"
+	"go-example/pkg/b"
+	"go-example/pkg/bridge"
+	"go-example/pkg/c"
 )
 
 func main() {
-	fmt.Println("hello world")
-	c := &cPkg.C{}
-	//A Print
+
+	a := &a.A{}
+
+	bridge := bridge.NewBridge(a)
+
+	c := c.C{Bridge: *bridge}
+
+	b := b.B{C: c}
+
+	a.B = b
+
+	a.Print()
+	b.Print()
 	c.Print()
 
-	a := &aPkg.A{}
-	bc := &bcPkg.BCBridge{Printer: a}
-	b := &bPkg.B{BCBridge: *bc}
-	//A Print
-	b.Print()
 }

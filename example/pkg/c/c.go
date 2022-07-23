@@ -1,11 +1,18 @@
 package c
 
-import "go-example/pkg/ac"
+import (
+	"fmt"
+	"go-example/pkg/bridge"
+)
 
 type C struct {
-	ac.ACBridge
+	bridge.Bridge
 }
 
 func (c C) Print() {
-	c.ACBridge.Print()
+	fmt.Println("C")
+	c.PrintA()
+}
+func (c C) PrintA() {
+	c.Bridge.Print()
 }

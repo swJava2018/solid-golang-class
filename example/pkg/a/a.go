@@ -2,13 +2,18 @@ package a
 
 import (
 	"fmt"
-	pkgb "go-example/pkg/b"
+	"go-example/pkg/b"
 )
 
 type A struct {
-	pkgb.B
+	b.B
 }
 
 func (a A) Print() {
-	fmt.Println("A Print")
+	fmt.Println("A")
+	a.PrintB()
+}
+
+func (a A) PrintB() {
+	a.B.Print()
 }

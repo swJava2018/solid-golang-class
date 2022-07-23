@@ -1,13 +1,18 @@
 package b
 
 import (
-	"go-example/pkg/bc"
+	"fmt"
+	"go-example/pkg/c"
 )
 
 type B struct {
-	bc.BCBridge
+	c.C
 }
 
 func (b B) Print() {
-	b.Printer.Print()
+	fmt.Println("B")
+	b.PrintC()
+}
+func (b B) PrintC() {
+	b.C.Print()
 }

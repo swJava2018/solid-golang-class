@@ -58,14 +58,13 @@ jobs:
         push: true
         tags: <DOCKERHUB_USERNAME>/event-data-pipeline:latest
 ```
---- 
+
 ###### Step2. Github Secrets 설정
 > Github Repository > Settings > Secrets > Actions 메뉴에서 New repository secret 클릭 후 각각 생성
 
 `DOCKERHUB_USERNAME` : [Dockerhub](https://hub.docker.com/) 사용자 계정명
 `DOCKERHUB_TOKEN` : [Dockerhub](https://hub.docker.com/) > Account Settings > Security > New Access Token 생성
-
---- 
+ 
 ###### Step3. 해당 브랜치 원격지에 Push 반영
 ```sh
 $ git push 
@@ -73,12 +72,22 @@ $ git push
 
 ###### Step4. Github Repository > Actions 에서 확인
 
+---
 #### Docker Image 실행
-##### Up
+##### Up Kafka, EDP, ES
 ```
-$ docker compose -f docker-compose.yaml -f docker-compose-dependencies.yaml up -d
+$ docker compose -f dockercomposes/docker-compose-kafka.yaml -f dockercomposes/docker-compose-kafka-dependencies.yaml up -d
 ```
-##### Down
+##### Down Kafka, EDP, ES
 ```
-$ docker compose -f docker-compose.yaml -f docker-compose-dependencies.yaml down 
+$ docker compose -f dockercomposes/docker-compose-kafka.yaml -f dockercomposes/docker-compose-kafka-dependencies.yaml down
+```
+
+##### Up Rabbitmq, EDP, ES
+```
+$ docker compose -f dockercomposes/docker-compose-rabbitmq.yaml -f dockercomposes/docker-compose-rabbitmq-dependencies.yaml up -d
+```
+##### Down Rabbitmq, EDP, ES
+```
+$ docker compose -f dockercomposes/docker-compose-rabbitmq.yaml -f dockercomposes/docker-compose-rabbitmq-dependencies.yaml down
 ```

@@ -197,7 +197,7 @@ func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) 
 					)
 					// 201 코드 이하의 경우 성공 처리
 				} else {
-					logger.Debugf("Success: ID[%d] Result[%s] Status[%d] ",
+					logger.Debugf("Success: ID[%s] Result[%s] Status[%d] ",
 						d.Index.ID,
 						d.Index.Result,
 						d.Index.Status)

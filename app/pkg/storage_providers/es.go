@@ -58,7 +58,7 @@ func NewElasticSearchClient(config jsonObj) StorageProvider {
 
 	es, err := es.NewClient(esConf)
 	if err != nil {
-		logger.Errorf("error in creating elasticsearch client: %s", err)
+		logger.Fatalf("error in creating elasticsearch client: %s", err)
 	}
 
 	transport, _ := json.Marshal(es.Transport)
@@ -157,9 +157,8 @@ func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) 
 		res, err := e.client.Bulk(reader,
 			e.client.Bulk.WithIndex(index),
 		)
-		defer res.Body.Close()
 		// 에러가 발생했거나, 결과값이 없는 경우
-		if err != nil || res == nil {
+		if err != nil {
 			logger.Errorf("error in bulk writing : %s", err.Error())
 			retry++
 			if e.maxRetries >= 0 && retry > e.maxRetries {
@@ -171,6 +170,7 @@ func (e *ElasticSearchClient) bulkWrite(index string, data []byte) (int, error) 
 			logger.Infof("retrying[%d/%d]", retry, e.maxRetries)
 			continue
 		}
+		defer res.Body.Close()
 
 		numIndexed := 0
 		numErrors := 0

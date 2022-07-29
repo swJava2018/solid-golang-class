@@ -4,13 +4,13 @@ services:
     image: youngstone89/event-data-pipeline:latest
     environment:
       - EDP_ENABLE_DEBUG_LOGGING=true
-      - EDP_CONFIG=configs/config.docker_compose.json
+      - EDP_CONFIG=configs/config.docker_compose.rabbitmq.yaml
     volumes:
-      - ./configs:/app/configs
+      - ../configs:/app/configs
     networks:
       - edp-net
     depends_on:
-      - kafka
+      - rabbitmq
       - elasticsearch
 networks:
   edp-net:

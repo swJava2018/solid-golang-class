@@ -4,7 +4,6 @@ services:
     links:
         - "elasticsearch:elasticsearch"
         - "kibana:kibana"
-        - "rabbitmq:rabbitmq"
         - "kafka-ui:kafka-ui"
         - "zookeeper0:zookeeper"
         - "kafka0:kafka"
@@ -41,15 +40,6 @@ services:
       - 5601:5601
     depends_on:
       - elasticsearch
-    networks:
-      - edp-net
-
-# RabbitMQ
-  rabbitmq:
-    image: 'rabbitmq:3.6-management-alpine'
-    ports:
-      - '5672:5672'
-      - '15672:15672'
     networks:
       - edp-net
 # Kafka UI
